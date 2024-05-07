@@ -10,9 +10,9 @@ import spray.json.*
 object ListAllProductsController extends BaseController {
   def apply(): Route = get {
     complete(HttpResponse(
-      status = StatusCodes.OK, 
+      status = StatusCodes.OK,
       entity = HttpEntity(
-        contentType = ContentTypes.`application/json`, 
+        contentType = ContentTypes.`application/json`,
         string = ProductService(ProductRepository()).listAllProducts.toJson.toString
       )))
   }

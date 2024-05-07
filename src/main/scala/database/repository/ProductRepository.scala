@@ -19,7 +19,7 @@ class ProductRepository {
   }
 }
 
-class ProductTable(tag: Tag) extends Table[Product](tag, Some("products"), "Product") {
+class ProductTable(tag: Tag) extends Table[Product](tag, "product") {
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
 
   def name = column[String]("name")

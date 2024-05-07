@@ -10,8 +10,6 @@ class RestRoutes {
     pathPrefix("api") {
       pathPrefix("v1") {
         productRoutes
-      } ~ pathPrefix("v1") {
-        userRoutes
       } ~ path("healthcheck") {
         get {
           complete("OK")
@@ -22,11 +20,5 @@ class RestRoutes {
   private lazy val productRoutes: Route = path("product") {
     ListAllProductsController() ~
       CreateProductController()
-  }
-
-  private lazy val userRoutes: Route = path("user") {
-    get {
-      complete("user")
-    }
   }
 }
