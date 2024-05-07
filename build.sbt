@@ -11,9 +11,13 @@ resolvers += "Akka library repository".at("https://repo.akka.io/maven")
 
 val AkkaVersion = "2.9.2"
 val AkkaHttpVersion = "10.6.2"
+val MySqlConnectorVersion = "8.0.33"
+val SlickVersion = "3.5.1"
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
   "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
-  "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion
+  "com.typesafe.akka" %% "akka-http-spray-json" % AkkaHttpVersion,
+  "com.typesafe.slick" %% "slick" % SlickVersion,
+  "mysql" % "mysql-connector-java" % MySqlConnectorVersion
 )
