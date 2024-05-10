@@ -7,16 +7,20 @@ import slick.lifted.TableQuery
 
 import scala.concurrent.Future
 
-class ProductRepository {
-  lazy val table = TableQuery[ProductTable]
+trait ProductRepositoryComponent {
+  val productRepository: ProductRepository
+  
+  class ProductRepository {
+    lazy val table = TableQuery[ProductTable]
 
-  def getAllProducts: Future[Seq[Product]] = {
-    MySQLConnection.db.run(table.result)
-  }
+    def getAllProducts: Future[Seq[Product]] = {
+      MySQLConnection.db.run(table.result)
+    }
 
-  def insertProduct(product: Product): Future[Int] = {
-    MySQLConnection.db.run(table += product)
-  }
+    def insertProduct(product: Product): Future[Int] = {
+      MySQLConnection.db.run(table += product)
+    }
+  } 
 }
 
 class ProductTable(tag: Tag) extends Table[Product](tag, "product") {

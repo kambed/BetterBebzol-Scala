@@ -1,18 +1,22 @@
 package service
 
-import database.repository.ProductRepository
+import database.repository.ProductRepositoryComponent
 import model.dto.ProductDto
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class ProductService(val productRepository: ProductRepository) {
+trait ProductServiceComponent { this: ProductRepositoryComponent =>
+  def productService: ProductService
 
-  def listAllProducts: Future[List[ProductDto]] = {
-    productRepository.getAllProducts.map(
-      productList => productList.map(
-        product => ProductDto(product.id, product.name, product.calories)
-      ).toList
-    )
+  class ProductService {
+
+    def listAllProducts: Future[List[ProductDto]] = {
+      productRepository.getAllProducts.map(
+        productList => productList.map(
+          product => ProductDto(product.id, product.name, product.calories)
+        ).toList
+      )
+    }
   }
 }
