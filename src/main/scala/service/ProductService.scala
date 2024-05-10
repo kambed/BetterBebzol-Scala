@@ -3,12 +3,16 @@ package service
 import database.repository.ProductRepository
 import model.dto.ProductDto
 
-import scala.concurrent.Await
-import scala.concurrent.duration.*
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 class ProductService(val productRepository: ProductRepository) {
 
-  def listAllProducts: Seq[ProductDto] = {
-    Await.result(productRepository.getAllProducts, 1000.millis).map(product => ProductDto(product.id, product.name, product.calories))
+  def listAllProducts: Future[List[ProductDto]] = {
+    productRepository.getAllProducts.map(
+      productList => productList.map(
+        product => ProductDto(product.id, product.name, product.calories)
+      ).toList
+    )
   }
 }
