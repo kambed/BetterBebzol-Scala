@@ -1,6 +1,7 @@
 package service
 
 import database.repository.ProductRepositoryComponent
+import model.command.CreateProductCommand
 import model.dto.ProductDto
 
 import scala.concurrent.Future
@@ -13,10 +14,12 @@ trait ProductServiceComponent { this: ProductRepositoryComponent =>
 
     def listAllProducts: Future[List[ProductDto]] = {
       productRepository.getAllProducts.map(
-        productList => productList.map(
-          product => ProductDto(product.id, product.name, product.calories)
-        ).toList
+        productList => productList.map(_.toProductDto).toList
       )
+    }
+    
+    def createProduct(createProductCommand: CreateProductCommand): Future[ProductDto] = {
+      productRepository.insertProduct(createProductCommand.toProduct).map(_.toProductDto)
     }
   }
 }

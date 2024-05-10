@@ -4,12 +4,13 @@ import database.connection.MySQLConnection
 import model.domain.Product
 import slick.jdbc.MySQLProfile.api.*
 import slick.lifted.TableQuery
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.Future
 
 trait ProductRepositoryComponent {
   val productRepository: ProductRepository
-  
+
   class ProductRepository {
     lazy val table = TableQuery[ProductTable]
 
@@ -17,10 +18,10 @@ trait ProductRepositoryComponent {
       MySQLConnection.db.run(table.result)
     }
 
-    def insertProduct(product: Product): Future[Int] = {
-      MySQLConnection.db.run(table += product)
+    def insertProduct(product: Product): Future[Product] = {
+      MySQLConnection.db.run((table returning table.map(_.id)) += product).map(id => product.copy(id = id))
     }
-  } 
+  }
 }
 
 class ProductTable(tag: Tag) extends Table[Product](tag, "product") {

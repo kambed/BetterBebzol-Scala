@@ -1,3 +1,7 @@
 package model.command
 
-case class CreateProductCommand(name: String, calories: Int)
+import model.domain.Product
+
+case class CreateProductCommand(name: String, calories: Int) {
+  def toProduct: Product = Product(0, name, calories)
+}
