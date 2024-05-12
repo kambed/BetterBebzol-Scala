@@ -1,0 +1,20 @@
+version: '3.3'
+services:
+  db:
+    container_name: database
+    image: mysql:5.7
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - '${MYSQL_LOCAL_PORT}:${MYSQL_DOCKER_PORT}'
+    expose:
+      - '${MYSQL_LOCAL_PORT}'
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
+    volumes:
+      - ./src/main/resources/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - data:/var/lib/mysql
+volumes:
+  data:
