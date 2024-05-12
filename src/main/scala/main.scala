@@ -2,7 +2,6 @@ import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.Http
 import model.command.abstracts.Command
 import rest.api.RestRoutes
-import util.Supervisor
 
 import scala.concurrent.ExecutionContextExecutor
 import scala.util.{Failure, Success}
