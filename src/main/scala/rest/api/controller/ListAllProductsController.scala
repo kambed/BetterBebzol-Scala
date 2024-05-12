@@ -1,16 +1,21 @@
 package rest.api.controller
 
-import akka.http.scaladsl.model.StatusCodes
+import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
-import database.repository.ProductRepositoryComponent
-import service.ProductServiceComponent
+import util.{ActorType, Actors}
+import akka.actor.typed.scaladsl.AskPattern.Askable
+import akka.actor.typed.scaladsl.AskPattern.schedulerFromActorSystem
+import model.command.ListAllProductsCommand
+import model.command.abstracts.Command
 
-object ListAllProductsController extends BaseController with ProductServiceComponent with ProductRepositoryComponent {
-  val productRepository: ListAllProductsController.ProductRepository = new ProductRepository
-  val productService: ListAllProductsController.ProductService = new ProductService
+object ListAllProductsController {
+  def apply(implicit system: ActorSystem[_]): Route = new ListAllProductsController().route()
+}
 
-  def apply(): Route = get {
-    complete(StatusCodes.OK, productService.listAllProducts)
+class ListAllProductsController(implicit system: ActorSystem[_]) extends BaseController {
+  def route(): Route = get {
+    val actorRef = Actors.getActorRef(ActorType.PRODUCT_SERVICE)
+    complete(actorRef.ask(ref => Command(ListAllProductsCommand(), ref)))
   }
 }

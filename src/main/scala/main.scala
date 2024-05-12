@@ -1,5 +1,6 @@
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.Http
+import model.command.abstracts.Command
 import rest.api.RestRoutes
 import util.Supervisor
 
@@ -8,7 +9,7 @@ import scala.util.{Failure, Success}
 
 @main
 def main(): Unit = {
-  implicit val system: ActorSystem[Nothing] = ActorSystem[Nothing](Supervisor(), "system")
+  implicit val system: ActorSystem[Command] = ActorSystem[Command](Supervisor(), "system")
   implicit val executionContext: ExecutionContextExecutor = system.executionContext
 
   system.log.info("Starting webserver...")

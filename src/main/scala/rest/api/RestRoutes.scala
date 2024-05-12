@@ -1,12 +1,14 @@
 package rest.api
 
+import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.server.Directives.*
 import akka.http.scaladsl.server.Route
 import rest.api.controller.{CreateProductController, ListAllProductsController}
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.{Directives, RejectionHandler}
+import model.command.abstracts.Command
 
-class RestRoutes {
+class RestRoutes(implicit system: ActorSystem[Command]) {
 
   val allRoutes: Route = Route.seal(
     pathPrefix("api") {
@@ -21,8 +23,8 @@ class RestRoutes {
   )
 
   private lazy val productRoutes: Route = path("product") {
-    ListAllProductsController() ~
-      CreateProductController()
+    ListAllProductsController(system) ~
+      CreateProductController(system)
   }
 
   implicit def rejectionHandler: RejectionHandler =
