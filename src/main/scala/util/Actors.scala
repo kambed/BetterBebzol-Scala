@@ -1,6 +1,6 @@
 package util
 
-import akka.actor.typed.{ActorRef, ActorSystem}
+import akka.actor.typed.ActorRef
 import model.command.abstracts.Command
 
 import scala.collection.mutable
@@ -9,7 +9,7 @@ import scala.collection.mutable.HashMap
 sealed abstract class ActorType(val name: String)
 
 object ActorType {
-  case object PRODUCT_SERVICE extends ActorType("product-service")
+  case object PRODUCT_DATABASE extends ActorType("product-database")
 }
 
 object Actors {

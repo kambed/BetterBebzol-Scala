@@ -22,7 +22,7 @@ class Supervisor(context: ActorContext[Command]) extends AbstractBehavior[Comman
   }
   
   private def registerActors(): Unit = {
-    Actors.addActorRef(ActorType.PRODUCT_SERVICE, context.spawn(ProductRepository(), ActorType.PRODUCT_SERVICE.name))
+    Actors.addActorRef(ActorType.PRODUCT_DATABASE, context.spawn(ProductRepository(), ActorType.PRODUCT_DATABASE.name))
   }
   registerActors()
 }

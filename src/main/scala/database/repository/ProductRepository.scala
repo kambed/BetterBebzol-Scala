@@ -12,7 +12,6 @@ import slick.lifted.TableQuery
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import scala.util.{Failure, Success}
 
 object ProductRepository {
   def apply(): Behavior[Command] = Behaviors.setup(context => new ProductRepository(context))
@@ -22,18 +21,13 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
   lazy val table = TableQuery[ProductTable]
 
   override def onMessage(msg: Command): Behavior[Command] = {
+    context.log.info(s"Received message: $msg")
     msg.command match {
       case createProductCommand: CreateProductCommand =>
-        insertProduct(createProductCommand.toProduct).onComplete {
-          case Success(value) => msg.replyTo ! value.toProductDto
-          case Failure(exception) => msg.replyTo ! exception
-        }
+        insertProduct(createProductCommand.toProduct).onComplete(msg.replyTo ! _.get)
         this
       case listAllProductsCommand: ListAllProductsCommand =>
-        getAllProducts.onComplete {
-          case Success(value) => msg.replyTo ! value.map(_.toProductDto)
-          case Failure(exception) => msg.replyTo ! exception
-        }
+        getAllProducts.onComplete(msg.replyTo ! _.get)
         this
     }
   }
