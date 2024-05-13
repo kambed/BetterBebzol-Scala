@@ -1,8 +1,9 @@
 package model.command
 
+import model.command.abstracts.BaseCommand
 import model.domain.Product
 
-case class CreateProductCommand(name: String, calories: Integer) {
+case class CreateProductCommand(name: String, calories: Integer) extends BaseCommand {
   require(name != null, "Name cannot be null")
   require(name.trim.nonEmpty, "Name cannot be empty")
   require(calories != null, "Calories cannot be null")
