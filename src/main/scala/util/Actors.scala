@@ -14,6 +14,8 @@ object ActorType {
 object Actors {
   private val actorRefs: mutable.HashMap[ActorType, ActorRef[Command]] = new mutable.HashMap()
 
+  def getAllActorRefs: Map[ActorType, ActorRef[Command]] = actorRefs.toMap
+
   def getActorRef(actorType: ActorType): ActorRef[Command] = {
     actorRefs.getOrElse(actorType, throw new IllegalArgumentException(s"ActorRef for ${actorType.name} not found"))
   }
