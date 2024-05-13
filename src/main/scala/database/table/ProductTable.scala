@@ -1,6 +1,6 @@
 package database.table
 
-import slick.jdbc.MySQLProfile.api.*
+import slick.jdbc.MySQLProfile.api._
 import model.domain.Product
 
 class ProductTable(tag: Tag) extends Table[Product](tag, "product") {

@@ -4,7 +4,6 @@ import akka.actor.typed.ActorRef
 import model.command.abstracts.Command
 
 import scala.collection.mutable
-import scala.collection.mutable.HashMap
 
 sealed abstract class ActorType(val name: String)
 
