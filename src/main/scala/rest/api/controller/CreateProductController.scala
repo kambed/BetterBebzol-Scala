@@ -8,13 +8,30 @@ import util.{ActorType, Actors}
 import akka.actor.typed.scaladsl.AskPattern.Askable
 import akka.actor.typed.scaladsl.AskPattern.schedulerFromActorSystem
 import akka.http.scaladsl.model.StatusCodes
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.{Content, Schema}
+import io.swagger.v3.oas.annotations.parameters.RequestBody
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import jakarta.ws.rs.{POST, Path}
 import model.domain.Product
+import model.dto.ProductDto
 
 object CreateProductController {
   def apply(implicit system: ActorSystem[_]): Route = new CreateProductController().route()
 }
 
+@Path("/api/v1/product")
 class CreateProductController(implicit system: ActorSystem[_]) extends BaseController {
+
+  @POST
+  @Operation(summary = "Create a product", tags = Array("product"),
+    requestBody = new RequestBody(required = true,
+      content = Array(new Content(schema = new Schema(implementation = classOf[CreateProductCommand])))),
+    responses = Array(
+      new ApiResponse(responseCode = "201", content = Array(new Content(schema = new Schema(implementation = classOf[ProductDto])))),
+      new ApiResponse(responseCode = "400", description = "Bad request"),
+      new ApiResponse(responseCode = "500", description = "Internal server error"))
+  )
   def route(): Route = post {
     entity(as[CreateProductCommand]) { createProductCommand =>
       val actorRef = Actors.getActorRef(ActorType.PRODUCT_DATABASE)

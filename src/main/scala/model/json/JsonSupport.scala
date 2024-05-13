@@ -1,15 +1,15 @@
 package model.json
 
-import akka.http.scaladsl.marshalling.{Marshaller, *}
+import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.{HttpEntity, HttpRequest}
-import akka.http.scaladsl.model.MediaTypes.*
-import akka.http.scaladsl.unmarshalling.*
+import akka.http.scaladsl.model.MediaTypes._
+import akka.http.scaladsl.unmarshalling._
 import akka.stream.Materializer
-import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
-import scala.concurrent.duration.*
+import scala.concurrent.duration._
 import scala.reflect.ClassTag
 import scala.language.postfixOps
 

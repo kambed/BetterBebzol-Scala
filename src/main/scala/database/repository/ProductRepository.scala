@@ -7,7 +7,7 @@ import database.table.ProductTable
 import model.command.{CreateProductCommand, ListAllProductsCommand}
 import model.command.abstracts.Command
 import model.domain.Product
-import slick.jdbc.MySQLProfile.api.*
+import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -26,7 +26,7 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
       case createProductCommand: CreateProductCommand =>
         insertProduct(createProductCommand.toProduct).onComplete(msg.replyTo ! _.get)
         this
-      case listAllProductsCommand: ListAllProductsCommand =>
+      case _: ListAllProductsCommand =>
         getAllProducts.onComplete(msg.replyTo ! _.get)
         this
     }

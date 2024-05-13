@@ -1,17 +1,18 @@
 package rest.api
 
 import akka.actor.typed.ActorSystem
-import akka.http.scaladsl.server.Directives.*
+import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import rest.api.controller.{CreateProductController, ListAllProductsController}
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse, StatusCodes}
-import akka.http.scaladsl.server.{Directives, RejectionHandler}
+import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse}
+import akka.http.scaladsl.server.RejectionHandler
 import model.command.abstracts.Command
+import util.swagger.SwaggerDocService
 
 class RestRoutes(implicit system: ActorSystem[Command]) {
 
   val allRoutes: Route = Route.seal(
-    pathPrefix("api") {
+    cors() (pathPrefix("api") {
       pathPrefix("v1") {
         productRoutes
       } ~ path("healthcheck") {
@@ -19,7 +20,7 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
           complete("OK")
         }
       }
-    }
+    } ~ SwaggerDocService.routes)
   )
 
   private lazy val productRoutes: Route = path("product") {

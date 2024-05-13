@@ -1,6 +1,6 @@
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
-ThisBuild / scalaVersion := "3.3.3"
+ThisBuild / scalaVersion := "2.13.14"
 
 lazy val root = (project in file("."))
   .settings(
@@ -22,6 +22,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
   "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
+  "jakarta.ws.rs" % "jakarta.ws.rs-api" % "4.0.0",
+  "com.github.swagger-akka-http" %% "swagger-akka-http" % "2.11.0",
+  "io.swagger.core.v3" % "swagger-jaxrs2-jakarta" % "2.2.21",
+  "ch.megard" %% "akka-http-cors" % "1.2.0",
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % JacksonVersion,
   "mysql" % "mysql-connector-java" % MySqlConnectorVersion,
   "com.typesafe.slick" %% "slick" % SlickVersion
