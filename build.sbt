@@ -13,6 +13,10 @@ val ScalaLoggingVersion = "3.9.5"
 val LogbackVersion = "1.5.6"
 val AkkaVersion = "2.9.2"
 val AkkaHttpVersion = "10.6.2"
+val SwaggerAkkaHttpVersion = "2.11.0"
+val AkkaCorsVersion = "1.2.0"
+val JakartaWsRsVersion = "4.0.0"
+val SwaggerJaxrs2JakartaVersion = "2.2.21"
 val JacksonVersion = "2.17.1"
 val MySqlConnectorVersion = "8.0.33"
 val SlickVersion = "3.5.1"
@@ -22,10 +26,10 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor-typed" % AkkaVersion,
   "com.typesafe.akka" %% "akka-stream" % AkkaVersion,
   "com.typesafe.akka" %% "akka-http" % AkkaHttpVersion,
-  "jakarta.ws.rs" % "jakarta.ws.rs-api" % "4.0.0",
-  "com.github.swagger-akka-http" %% "swagger-akka-http" % "2.11.0",
-  "io.swagger.core.v3" % "swagger-jaxrs2-jakarta" % "2.2.21",
-  "ch.megard" %% "akka-http-cors" % "1.2.0",
+  "com.github.swagger-akka-http" %% "swagger-akka-http" % SwaggerAkkaHttpVersion,
+  "ch.megard" %% "akka-http-cors" % AkkaCorsVersion,
+  "jakarta.ws.rs" % "jakarta.ws.rs-api" % JakartaWsRsVersion,
+  "io.swagger.core.v3" % "swagger-jaxrs2-jakarta" % SwaggerJaxrs2JakartaVersion,
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % JacksonVersion,
   "mysql" % "mysql-connector-java" % MySqlConnectorVersion,
   "com.typesafe.slick" %% "slick" % SlickVersion
