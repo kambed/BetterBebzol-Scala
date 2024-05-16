@@ -1,11 +1,9 @@
 package rest.api.controller
 
 import akka.actor.typed.ActorSystem
-import akka.http.scaladsl.server.Route
-import util.{ActorType, Actors}
-import akka.actor.typed.scaladsl.AskPattern.Askable
-import akka.actor.typed.scaladsl.AskPattern.schedulerFromActorSystem
+import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
 import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.server.Route
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -14,6 +12,7 @@ import model.command.ListAllProductsCommand
 import model.command.abstracts.Command
 import model.domain.Product
 import model.dto.ProductListDto
+import util.{ActorType, Actors}
 
 object ListAllProductsController {
   def apply(implicit system: ActorSystem[_]): Route = new ListAllProductsController().route()
