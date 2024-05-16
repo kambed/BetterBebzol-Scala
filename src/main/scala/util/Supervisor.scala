@@ -1,7 +1,7 @@
 package util
 
-import akka.actor.typed.{Behavior, PostStop, Signal}
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
+import akka.actor.typed.{Behavior, PostStop, Signal}
 import database.repository.ProductRepository
 import model.command.abstracts.Command
 

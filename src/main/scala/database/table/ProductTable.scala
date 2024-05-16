@@ -1,7 +1,7 @@
 package database.table
 
-import slick.jdbc.MySQLProfile.api._
 import model.domain.Product
+import slick.jdbc.MySQLProfile.api._
 
 class ProductTable(tag: Tag) extends Table[Product](tag, "product") {
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
