@@ -1,0 +1,50 @@
+[plantuml,"database-entities-diagram",svg]
+.Database entities diagram
+----
+hide circle
+skinparam linetype ortho
+
+entity "User" {
+*user_id : number <<generated>>
+--
+*email : string
+*password : string
+age : int
+height : float
+weight : float
+how_active : string
+}
+
+entity "Meal" {
+*meal_id : number <<generated>>
+--
+*meal_name : string
+*calories : int
+protein : float
+fat : float
+carbohydrates : float
+*date : date
+}
+
+entity "Product" {
+*product_id : number <<generated>>
+--
+*product_name : string
+*calories : int
+protein : float
+fat : float
+carbohydrates : float
+}
+
+entity "MealProduct" {
+*meal_id : number
+*product_id : number
+--
+quantity : float
+}
+
+User ||..o{ Meal
+User ||..o{ Product
+MealProduct }o..|| Product
+Meal ||..o{ MealProduct
+----

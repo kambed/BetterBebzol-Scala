@@ -25,11 +25,10 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     msg.command match {
       case createProductCommand: CreateProductCommand =>
         insertProduct(createProductCommand.toProduct).onComplete(msg.replyTo ! _.get)
-        this
       case _: ListAllProductsCommand =>
         getAllProducts.onComplete(msg.replyTo ! _.get)
-        this
     }
+    this
   }
 
   private def getAllProducts: Future[Seq[Product]] = {
