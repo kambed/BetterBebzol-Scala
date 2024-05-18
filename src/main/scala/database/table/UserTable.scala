@@ -14,11 +14,11 @@ class UserTable(tag: Tag) extends Table[User](tag, "User") {
 
   def password = column[String]("password")
 
-  def age = column[Int]("age")
+  def age = column[Option[Int]]("age")
 
-  def height = column[Double]("height")
+  def height = column[Option[Double]]("height")
 
-  def weight = column[Double]("weight")
+  def weight = column[Option[Double]]("weight")
 
   def howActive = column[HowActive]("how_active")
 
