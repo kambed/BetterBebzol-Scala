@@ -1,4 +1,4 @@
-package rest.api.controller
+package rest.api.controller.product
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
@@ -13,6 +13,7 @@ import model.command.CreateProductCommand
 import model.command.abstracts.Command
 import model.domain.Product
 import model.dto.ProductDto
+import rest.api.controller.BaseController
 import util.{ActorType, Actors}
 
 object CreateProductController {

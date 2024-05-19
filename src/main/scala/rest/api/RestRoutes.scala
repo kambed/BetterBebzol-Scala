@@ -5,7 +5,8 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{RejectionHandler, Route}
 import model.command.abstracts.Command
-import rest.api.controller.{CreateProductController, CreateUserController, ListAllProductsController}
+import rest.api.controller.product.{CreateProductController, ListAllProductsController}
+import rest.api.controller.user.{CreateUserController, GetUserController}
 import util.swagger.SwaggerDocService
 
 class RestRoutes(implicit system: ActorSystem[Command]) {
@@ -19,8 +20,12 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
     } ~ SwaggerDocService.routes)
   )
 
-  private lazy val userRoutes: Route = path("user") {
-    CreateUserController(system)
+  private lazy val userRoutes: Route = pathPrefix("user") {
+    pathEnd {
+      CreateUserController(system)
+    } ~ path(Segment) { email =>
+      GetUserController(system, email)
+    }
   }
 
   private lazy val productRoutes: Route = path("product") {

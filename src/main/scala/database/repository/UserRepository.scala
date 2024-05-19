@@ -4,9 +4,9 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.UserTable
-import model.command.CreateUserCommand
+import model.command.{CreateUserCommand, GetUserCommand}
 import model.command.abstracts.Command
-import model.command.exception.ExceptionWithResponseCode400
+import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode404}
 import model.domain.User
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
@@ -36,8 +36,18 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
               case _ => msg.replyTo ! exception
             }
         }
+      case getUserCommand: GetUserCommand =>
+        getUserByEmail(getUserCommand.email).onComplete {
+          case Success(user) => msg.replyTo ! (if (user.isDefined) user.get else ExceptionWithResponseCode404(
+            s"User with email ${getUserCommand.email} not found"))
+          case Failure(exception) => msg.replyTo ! exception
+        }
     }
     this
+  }
+
+  private def getUserByEmail(email: String): Future[Option[User]] = {
+    MySQLConnection.db.run(table.filter(_.email === email).result.headOption)
   }
 
   private def insertUser(user: User): Future[User] = {

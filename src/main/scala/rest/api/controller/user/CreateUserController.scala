@@ -1,4 +1,4 @@
-package rest.api.controller
+package rest.api.controller.user
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
@@ -13,6 +13,7 @@ import model.command.CreateUserCommand
 import model.command.abstracts.Command
 import model.domain.User
 import model.dto.UserDto
+import rest.api.controller.BaseController
 import util.{ActorType, Actors}
 
 object CreateUserController {

@@ -33,6 +33,6 @@ class BaseController extends Directives with JsonSupport {
   }
 
   protected def completeWith500(): Route = {
-    completeWith500("unknown internal server error")
+    completeWith500("Unknown internal server error")
   }
 }
