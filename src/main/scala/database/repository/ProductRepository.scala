@@ -36,6 +36,6 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
   }
 
   private def insertProduct(product: Product): Future[Product] = {
-    MySQLConnection.db.run((table returning table.map(_.id)) += product).map(id => product.copy(id = id))
+    MySQLConnection.db.run((table returning table.map(_.productId)) += product).map(id => product.copy(productId = id))
   }
 }

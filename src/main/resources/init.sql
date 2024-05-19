@@ -31,7 +31,7 @@ CREATE TABLE Product
     product_id    bigint AUTO_INCREMENT PRIMARY KEY,
     user_id       bigint,
     product_name  VARCHAR(255) NOT NULL,
-    calories      INT,
+    calories      INT NOT NULL,
     protein       FLOAT,
     fat           FLOAT,
     carbohydrates FLOAT,
