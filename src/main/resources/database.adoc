@@ -9,9 +9,10 @@ entity "User" {
 --
 *email : string
 *password : string
+sex : string
 age : int
-height : float
-weight : float
+height : int
+weight : int
 how_active : string
 }
 

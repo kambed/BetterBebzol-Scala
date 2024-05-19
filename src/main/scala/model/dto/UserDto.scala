@@ -1,4 +1,10 @@
 package model.dto
 
-case class UserDto(userId: Long, email: String, password: String, age: Option[Int],
-                   height: Option[Double], weight: Option[Double], howActive: String)
+case class UserDto(userId: Long,
+                   email: String,
+                   password: String,
+                   sex: Option[String],
+                   age: Option[Int],
+                   height: Option[Int],
+                   weight: Option[Int],
+                   howActive: Option[String])

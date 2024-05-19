@@ -16,6 +16,7 @@ import scala.reflect.ClassTag
 trait JsonSupport {
 
   private val mapper = new ObjectMapper()
+  mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
   mapper.registerModule(DefaultScalaModule)
 
   implicit def JacksonMarshaller: ToEntityMarshaller[AnyRef] = {

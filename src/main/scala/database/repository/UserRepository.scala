@@ -6,12 +6,15 @@ import database.MySQLConnection
 import database.table.UserTable
 import model.command.CreateUserCommand
 import model.command.abstracts.Command
+import model.command.exception.ExceptionWithResponseCode400
 import model.domain.User
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
+import java.sql.SQLIntegrityConstraintViolationException
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Failure, Success}
 
 object UserRepository {
   def apply(): Behavior[Command] = Behaviors.setup(context => new UserRepository(context))
@@ -24,12 +27,20 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
     context.log.info(s"Received message: $msg")
     msg.command match {
       case createUserCommand: CreateUserCommand =>
-        insertUser(createUserCommand.toUser).onComplete(msg.replyTo ! _.get)
+        insertUser(createUserCommand.toUser).onComplete {
+          case Success(user) => msg.replyTo ! user
+          case Failure(exception) =>
+            exception match {
+              case exception: SQLIntegrityConstraintViolationException =>
+                msg.replyTo ! ExceptionWithResponseCode400(exception.getMessage)
+              case _ => msg.replyTo ! exception
+            }
+        }
     }
     this
   }
 
   private def insertUser(user: User): Future[User] = {
-    MySQLConnection.db.run((table returning table.map(_.user_id)) += user).map(id => user.copy(userId = id))
+    MySQLConnection.db.run((table returning table.map(_.userId)) += user).map(id => user.copy(userId = id))
   }
 }

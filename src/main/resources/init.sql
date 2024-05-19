@@ -2,11 +2,12 @@
 CREATE TABLE User
 (
     user_id    bigint AUTO_INCREMENT PRIMARY KEY,
-    email      VARCHAR(255) NOT NULL,
+    email      VARCHAR(255) UNIQUE NOT NULL,
     password   VARCHAR(255) NOT NULL,
+    sex        VARCHAR(50),
     age        INT,
-    height     FLOAT,
-    weight     FLOAT,
+    height     INT,
+    weight     INT,
     how_active VARCHAR(50)
 );
 
