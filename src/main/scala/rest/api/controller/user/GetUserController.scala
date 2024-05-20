@@ -9,10 +9,10 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{GET, Path}
-import model.command.GetUserCommand
+import model.command.{GetUserCommand, ReturnCommand}
 import model.command.abstracts.Command
 import model.domain.User
-import model.dto.UserDto
+import model.dto.{UserDto, UserTokenDto}
 import rest.api.controller.BaseController
 import util.jwt.TokenAuthorization
 import util.{ActorType, Actors}
@@ -37,10 +37,15 @@ class GetUserController(implicit system: ActorSystem[_], val email: String) exte
   )
   def route(): Route = get {
     val actorRef = Actors.getActorRef(ActorType.USER_DATABASE)
-    val result: Future[Any] = actorRef.ask(ref => Command(GetUserCommand(email), ref))
-    onSuccess(result) {
-      case user: User => complete(StatusCodes.OK, user.toUserDto)
-      case other => completeNegative(other)
+    val result: Future[Command] = actorRef.ask(ref => Command(GetUserCommand(email), ref))
+    onSuccess(result) { result: Command =>
+      result.command match {
+        case returnCommand: ReturnCommand => returnCommand.response match {
+          case user: User => complete(StatusCodes.OK, user.toUserDto)
+          case other => completeNegative(other)
+        }
+        case other => completeNegative(other)
+      }
     }
   }
 }

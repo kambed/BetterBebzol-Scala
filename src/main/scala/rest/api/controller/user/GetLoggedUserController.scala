@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import jakarta.ws.rs.{GET, Path}
-import model.command.GetUserCommand
+import model.command.{GetUserCommand, ReturnCommand}
 import model.command.abstracts.Command
 import model.domain.User
 import model.dto.UserDto
@@ -42,10 +42,15 @@ class GetLoggedUserController(implicit system: ActorSystem[_]) extends BaseContr
       if (email.isEmpty) {
         return completeWith401()
       }
-      val result: Future[Any] = actorRef.ask(ref => Command(GetUserCommand(email.get), ref))
-      onSuccess(result) {
-        case user: User => complete(StatusCodes.OK, user.toUserDto)
-        case other => completeNegative(other)
+      val result: Future[Command] = actorRef.ask(ref => Command(GetUserCommand(email.get), ref))
+      onSuccess(result) { result: Command =>
+        result.command match {
+          case returnCommand: ReturnCommand => returnCommand.response match {
+            case user: User => complete(StatusCodes.OK, user.toUserDto)
+            case other => completeNegative(other)
+          }
+          case other => completeNegative(other)
+        }
       }
     }
   }

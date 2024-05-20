@@ -4,7 +4,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.UserTable
-import model.command.{CreateUserCommand, GetUserCommand, ValidateUserCommand}
+import model.command.{CreateUserCommand, GetUserCommand, ReturnCommand, ValidateUserCommand}
 import model.command.abstracts.Command
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode404}
 import model.domain.User
@@ -28,30 +28,28 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
     msg.command match {
       case createUserCommand: CreateUserCommand =>
         insertUser(createUserCommand.toUser).onComplete {
-          case Success(user) => msg.replyTo ! user
+          case Success(user) =>
+            val response = Command(ReturnCommand(user))
+            response.delayedRequests = msg.delayedRequests
+            msg.replyTo ! response
           case Failure(exception) =>
             exception match {
               case exception: SQLIntegrityConstraintViolationException =>
-                msg.replyTo ! ExceptionWithResponseCode400(exception.getMessage)
-              case _ => msg.replyTo ! exception
+                msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400(exception.getMessage)))
+              case _ => msg.replyTo ! Command(ReturnCommand(exception))
             }
         }
       case getUserCommand: GetUserCommand =>
         getUserByEmail(getUserCommand.email).onComplete {
           case Success(user) =>
             if (user.isEmpty) {
-              msg.replyTo ! ExceptionWithResponseCode404(s"User with email ${getUserCommand.email} not found")
+              msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode404(s"User with email ${getUserCommand.email} not found")))
               return this
             }
-            if (msg.internalCommand != null) {
-              msg.internalCommand.internalCommand match {
-                case validateUserCommand: ValidateUserCommand =>
-                  msg.internalCommand.replyInternallyTo ! Command(ValidateUserCommand(validateUserCommand.givenPassword, user.get), msg.replyTo)
-              }
-            } else {
-              msg.replyTo ! user.get
-            }
-          case Failure(exception) => msg.replyTo ! exception
+            val response = Command(ReturnCommand(user.get))
+            response.delayedRequests = msg.delayedRequests
+            msg.replyTo ! response
+          case Failure(exception) => msg.replyTo ! Command(ReturnCommand(exception))
         }
     }
     this

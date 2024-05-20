@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{POST, Path}
-import model.command.CreateUserCommand
+import model.command.{CreateUserCommand, ReturnCommand}
 import model.command.abstracts.Command
 import model.domain.User
 import model.dto.UserDto
@@ -37,10 +37,15 @@ class CreateUserController(implicit system: ActorSystem[_]) extends BaseControll
   def route(): Route = post {
     entity(as[CreateUserCommand]) { createUserCommand =>
       val actorRef = Actors.getActorRef(ActorType.AUTH_SERVICE)
-      val result: Future[Any] = actorRef.ask(ref => Command(createUserCommand, ref))
-      onSuccess(result) {
-        case user: User => complete(StatusCodes.Created, user.toUserDto)
-        case other => completeNegative(other)
+      val result: Future[Command] = actorRef.ask(ref => Command(createUserCommand, ref))
+      onSuccess(result) { result: Command =>
+        result.command match {
+          case returnCommand: ReturnCommand => returnCommand.response match {
+            case user: User => complete(StatusCodes.Created, user.toUserDto)
+            case other => completeNegative(other)
+          }
+          case other => completeNegative(other)
+        }
       }
     }
   }

@@ -2,22 +2,23 @@ package service
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
-import model.command.abstracts.{Command, InternalCommand}
+import model.command.abstracts.Command
 import model.command.exception.ExceptionWithResponseCode400
-import model.command.{CreateUserCommand, GetUserCommand, LoginUserCommand, ValidateUserCommand}
+import model.command.{CreateUserCommand, GetUserCommand, LoginUserCommand, ReturnCommand, ValidateUserCommand}
+import model.domain.User
 import util.hash.BCryptHelper
 import util.jwt.TokenAuthorization
 import util.{ActorType, Actors}
 
 object AuthService {
-  def apply(): Behavior[Any] = Behaviors.setup(context => new AuthService(context))
+  def apply(): Behavior[Command] = Behaviors.setup(context => new AuthService(context))
 }
 
-private class AuthService(context: ActorContext[Any]) extends AbstractBehavior[Any](context) {
+private class AuthService(context: ActorContext[Command]) extends AbstractBehavior[Command](context) {
 
   private val actorRef = Actors.getActorRef(ActorType.USER_DATABASE)
 
-  override def onMessage(msg: Any): Behavior[Any] = {
+  override def onMessage(msg: Command): Behavior[Command] = {
     context.log.info(s"Received message: $msg")
     msg match {
       case command: Command =>
@@ -26,13 +27,20 @@ private class AuthService(context: ActorContext[Any]) extends AbstractBehavior[A
             val hashedCreateUserCommand = createUserCommand.copy(password = BCryptHelper.hashPassword(createUserCommand.password))
             actorRef ! Command(hashedCreateUserCommand, command.replyTo)
           case loginUserCommand: LoginUserCommand =>
-            actorRef ! Command(GetUserCommand(loginUserCommand.email), command.replyTo,
-              InternalCommand(ValidateUserCommand(loginUserCommand.password, null), context.self))
-          case validateUserCommand: ValidateUserCommand =>
-            if (BCryptHelper.checkPassword(validateUserCommand.givenPassword, validateUserCommand.user.password)) {
-              command.replyTo ! TokenAuthorization.generateToken(validateUserCommand.user)
-            } else {
-              command.replyTo ! ExceptionWithResponseCode400("Invalid password")
+            val command = Command(GetUserCommand(loginUserCommand.email), context.self)
+            command.delayedRequests += Command(loginUserCommand, msg.replyTo)
+            actorRef ! command
+          case returnCommand: ReturnCommand =>
+            val headRequest = command.delayedRequests.head
+            command.delayedRequests.drop(1)
+            headRequest.command match {
+              case loginUserCommand: LoginUserCommand =>
+                val user = returnCommand.response.asInstanceOf[User]
+                if (BCryptHelper.checkPassword(loginUserCommand.password, user.password)) {
+                  headRequest.replyTo ! Command(ReturnCommand(TokenAuthorization.generateToken(user)))
+                } else {
+                  headRequest.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400("Invalid password")))
+                }
             }
         }
     }

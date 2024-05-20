@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.ws.rs.{POST, Path}
-import model.command.LoginUserCommand
+import model.command.{LoginUserCommand, ReturnCommand}
 import model.command.abstracts.Command
 import model.dto.UserTokenDto
 import rest.api.controller.BaseController
@@ -35,10 +35,16 @@ class LoginUserController(implicit system: ActorSystem[_]) extends BaseControlle
   )
   def route(): Route = post {
     entity(as[LoginUserCommand]) { loginUserCommand =>
-      val token: Future[Any] = Actors.getActorRef(ActorType.AUTH_SERVICE).ask(ref => Command(loginUserCommand, ref))
-      onSuccess(token) {
-        case jwt: String => complete(StatusCodes.OK, UserTokenDto(jwt))
-        case other => completeNegative(other)
+      val actorRef = Actors.getActorRef(ActorType.AUTH_SERVICE)
+      val result: Future[Command] = actorRef.ask(ref => Command(loginUserCommand, ref))
+      onSuccess(result) { result: Command =>
+        result.command match {
+          case returnCommand: ReturnCommand => returnCommand.response match {
+            case jwt: String => complete(StatusCodes.OK, UserTokenDto(jwt))
+            case other => completeNegative(other)
+          }
+          case other => completeNegative(other)
+        }
       }
     }
   }
