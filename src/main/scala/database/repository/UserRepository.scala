@@ -4,7 +4,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.UserTable
-import model.command.{CreateUserCommand, GetUserCommand}
+import model.command.{CreateUserCommand, GetUserCommand, ReturnCommand, ValidateUserCommand}
 import model.command.abstracts.Command
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode404}
 import model.domain.User
@@ -28,19 +28,28 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
     msg.command match {
       case createUserCommand: CreateUserCommand =>
         insertUser(createUserCommand.toUser).onComplete {
-          case Success(user) => msg.replyTo ! user
+          case Success(user) =>
+            val response = Command(ReturnCommand(user))
+            response.delayedRequests = msg.delayedRequests
+            msg.replyTo ! response
           case Failure(exception) =>
             exception match {
               case exception: SQLIntegrityConstraintViolationException =>
-                msg.replyTo ! ExceptionWithResponseCode400(exception.getMessage)
-              case _ => msg.replyTo ! exception
+                msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400(exception.getMessage)))
+              case _ => msg.replyTo ! Command(ReturnCommand(exception))
             }
         }
       case getUserCommand: GetUserCommand =>
         getUserByEmail(getUserCommand.email).onComplete {
-          case Success(user) => msg.replyTo ! (if (user.isDefined) user.get else ExceptionWithResponseCode404(
-            s"User with email ${getUserCommand.email} not found"))
-          case Failure(exception) => msg.replyTo ! exception
+          case Success(user) =>
+            if (user.isEmpty) {
+              msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode404(s"User with email ${getUserCommand.email} not found")))
+              return this
+            }
+            val response = Command(ReturnCommand(user.get))
+            response.delayedRequests = msg.delayedRequests
+            msg.replyTo ! response
+          case Failure(exception) => msg.replyTo ! Command(ReturnCommand(exception))
         }
     }
     this

@@ -32,5 +32,7 @@ libraryDependencies ++= Seq(
   "io.swagger.core.v3" % "swagger-jaxrs2-jakarta" % SwaggerJaxrs2JakartaVersion,
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % JacksonVersion,
   "mysql" % "mysql-connector-java" % MySqlConnectorVersion,
-  "com.typesafe.slick" %% "slick" % SlickVersion
+  "com.typesafe.slick" %% "slick" % SlickVersion,
+  "com.github.jwt-scala" %% "jwt-core" % "10.0.1",
+  "at.favre.lib" % "bcrypt" % "0.10.2"
 )

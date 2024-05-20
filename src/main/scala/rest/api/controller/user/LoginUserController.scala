@@ -4,44 +4,43 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.Operation
 import jakarta.ws.rs.{POST, Path}
-import model.command.{CreateUserCommand, ReturnCommand}
+import model.command.{LoginUserCommand, ReturnCommand}
 import model.command.abstracts.Command
-import model.domain.User
-import model.dto.UserDto
+import model.dto.UserTokenDto
 import rest.api.controller.BaseController
 import util.{ActorType, Actors}
 
 import scala.concurrent.Future
 
-object CreateUserController {
-  def apply(implicit system: ActorSystem[_]): Route = new CreateUserController().route()
+object LoginUserController {
+  def apply(implicit system: ActorSystem[_]): Route = new LoginUserController().route()
 }
 
-@Path("/api/v1/user")
-class CreateUserController(implicit system: ActorSystem[_]) extends BaseController {
+@Path("/api/v1/user/login")
+class LoginUserController(implicit system: ActorSystem[_]) extends BaseController {
 
   @POST
-  @Operation(summary = "Register user", tags = Array("user"),
+  @Operation(summary = "Login user", tags = Array("user"),
     requestBody = new RequestBody(required = true,
-      content = Array(new Content(schema = new Schema(implementation = classOf[CreateUserCommand])))),
+      content = Array(new Content(schema = new Schema(implementation = classOf[LoginUserCommand])))),
     responses = Array(
-      new ApiResponse(responseCode = "201", content = Array(new Content(schema = new Schema(implementation = classOf[UserDto])))),
-      new ApiResponse(responseCode = "400", description = "Bad request"),
+      new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[UserTokenDto])))),
+      new ApiResponse(responseCode = "401", description = "Unauthorized"),
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
   def route(): Route = post {
-    entity(as[CreateUserCommand]) { createUserCommand =>
+    entity(as[LoginUserCommand]) { loginUserCommand =>
       val actorRef = Actors.getActorRef(ActorType.AUTH_SERVICE)
-      val result: Future[Command] = actorRef.ask(ref => Command(createUserCommand, ref))
+      val result: Future[Command] = actorRef.ask(ref => Command(loginUserCommand, ref))
       onSuccess(result) { result: Command =>
         result.command match {
           case returnCommand: ReturnCommand => returnCommand.response match {
-            case user: User => complete(StatusCodes.Created, user.toUserDto)
+            case jwt: String => complete(StatusCodes.OK, UserTokenDto(jwt))
             case other => completeNegative(other)
           }
           case other => completeNegative(other)

@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.ProductTable
 import model.command.abstracts.Command
-import model.command.{CreateProductCommand, ListAllProductsCommand}
+import model.command.{CreateProductCommand, ListAllProductsCommand, ReturnCommand}
 import model.domain.Product
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
@@ -24,9 +24,9 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     context.log.info(s"Received message: $msg")
     msg.command match {
       case createProductCommand: CreateProductCommand =>
-        insertProduct(createProductCommand.toProduct).onComplete(msg.replyTo ! _.get)
+        insertProduct(createProductCommand.toProduct).onComplete(product => msg.replyTo ! Command(ReturnCommand(product.get)))
       case _: ListAllProductsCommand =>
-        getAllProducts.onComplete(msg.replyTo ! _.get)
+        getAllProducts.onComplete(products => msg.replyTo ! Command(ReturnCommand(products.get)))
     }
     this
   }
