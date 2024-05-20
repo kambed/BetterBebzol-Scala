@@ -2,9 +2,9 @@ package service
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
-import model.command.abstracts.Command
+import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.ExceptionWithResponseCode400
-import model.command.{CreateUserCommand, GetUserCommand, LoginUserCommand, ReturnCommand, ValidateUserCommand}
+import model.command.{CreateUserCommand, GetUserCommand, LoginUserCommand, ValidateUserCommand}
 import model.domain.User
 import util.hash.BCryptHelper
 import util.jwt.TokenAuthorization
@@ -22,6 +22,11 @@ private class AuthService(context: ActorContext[Command]) extends AbstractBehavi
     context.log.info(s"Received message: $msg")
     msg match {
       case command: Command =>
+        var headRequest = Command(null, null)
+        if (command.delayedRequests.nonEmpty) {
+          headRequest = command.delayedRequests.head
+          command.delayedRequests.drop(1)
+        }
         command.command match {
           case createUserCommand: CreateUserCommand =>
             val hashedCreateUserCommand = createUserCommand.copy(password = BCryptHelper.hashPassword(createUserCommand.password))
@@ -31,8 +36,6 @@ private class AuthService(context: ActorContext[Command]) extends AbstractBehavi
             command.delayedRequests += Command(loginUserCommand, msg.replyTo)
             actorRef ! command
           case returnCommand: ReturnCommand =>
-            val headRequest = command.delayedRequests.head
-            command.delayedRequests.drop(1)
             headRequest.command match {
               case loginUserCommand: LoginUserCommand =>
                 val user = returnCommand.response.asInstanceOf[User]

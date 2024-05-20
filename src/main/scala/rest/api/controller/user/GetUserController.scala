@@ -9,8 +9,8 @@ import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{GET, Path}
-import model.command.{GetUserCommand, ReturnCommand}
-import model.command.abstracts.Command
+import model.command.GetUserCommand
+import model.command.abstracts.{Command, ReturnCommand}
 import model.domain.User
 import model.dto.{UserDto, UserTokenDto}
 import rest.api.controller.BaseController
@@ -36,8 +36,7 @@ class GetUserController(implicit system: ActorSystem[_], val email: String) exte
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
   def route(): Route = get {
-    val actorRef = Actors.getActorRef(ActorType.USER_DATABASE)
-    val result: Future[Command] = actorRef.ask(ref => Command(GetUserCommand(email), ref))
+    val result: Future[Command] = Actors.getActorRef(ActorType.USER_DATABASE).ask(ref => Command(GetUserCommand(email), ref))
     onSuccess(result) { result: Command =>
       result.command match {
         case returnCommand: ReturnCommand => returnCommand.response match {

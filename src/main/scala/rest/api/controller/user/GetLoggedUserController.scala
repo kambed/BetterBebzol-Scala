@@ -9,8 +9,8 @@ import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import jakarta.ws.rs.{GET, Path}
-import model.command.{GetUserCommand, ReturnCommand}
-import model.command.abstracts.Command
+import model.command.GetUserCommand
+import model.command.abstracts.{Command, ReturnCommand}
 import model.domain.User
 import model.dto.UserDto
 import rest.api.controller.BaseController
@@ -37,12 +37,11 @@ class GetLoggedUserController(implicit system: ActorSystem[_]) extends BaseContr
   )
   def route(): Route = get {
     TokenAuthorization.authenticated { claims =>
-      val actorRef = Actors.getActorRef(ActorType.USER_DATABASE)
       val email = claims.get("email")
       if (email.isEmpty) {
         return completeWith401()
       }
-      val result: Future[Command] = actorRef.ask(ref => Command(GetUserCommand(email.get), ref))
+      val result: Future[Command] = Actors.getActorRef(ActorType.USER_DATABASE).ask(ref => Command(GetUserCommand(email.get), ref))
       onSuccess(result) { result: Command =>
         result.command match {
           case returnCommand: ReturnCommand => returnCommand.response match {
