@@ -116,6 +116,13 @@ class TopicOneExampleTests extends AnyFlatSpec {
     filteredSequence should contain theSameElementsInOrderAs Seq(2, 3)
   }
 
+  "Sequence" should "add element" in {
+    val sequence: Seq[Int] = Seq(1, 2, 3)
+    sequence.appended(4)
+
+    sequence should have size 4
+  }
+
   "List" should "be created" in {
     val list: List[Int] = List(1, 2, 3)
     val list2 = List(1, 2, 3)
@@ -195,5 +202,12 @@ class TopicOneExampleTests extends AnyFlatSpec {
 
     result should be ("1one")
   }
+
+  "Array" should "add element" in {
+    val arr = Array(1, 2, 3, 4, 5)
+    val newArr = arr.map(_ * 2).filter(_ % 3 == 0)
+    println(newArr.mkString(", "))
+  }
+
 
 }
