@@ -1,4 +1,4 @@
-package rest.api.controller
+package rest.api.controller.product
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
@@ -12,7 +12,10 @@ import model.command.ListAllProductsCommand
 import model.command.abstracts.Command
 import model.domain.Product
 import model.dto.ProductListDto
+import rest.api.controller.BaseController
 import util.{ActorType, Actors}
+
+import scala.concurrent.Future
 
 object ListAllProductsController {
   def apply(implicit system: ActorSystem[_]): Route = new ListAllProductsController().route()
@@ -29,7 +32,7 @@ class ListAllProductsController(implicit system: ActorSystem[_]) extends BaseCon
   )
   def route(): Route = get {
     val actorRef = Actors.getActorRef(ActorType.PRODUCT_DATABASE)
-    val result = actorRef.ask(ref => Command(ListAllProductsCommand(), ref))
+    val result: Future[Any] = actorRef.ask(ref => Command(ListAllProductsCommand(), ref))
     onSuccess(result) {
       case products: Seq[Product] => complete(StatusCodes.OK, ProductListDto(products.map(_.toProductDto).toList))
       case other => completeNegative(other)

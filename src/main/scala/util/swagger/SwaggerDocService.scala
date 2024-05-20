@@ -5,10 +5,11 @@ import akka.http.scaladsl.server.Route
 import com.github.swagger.akka.SwaggerHttpService
 import com.github.swagger.akka.model.Info
 import io.swagger.v3.oas.models.security.SecurityScheme
-import rest.api.controller.{CreateProductController, ListAllProductsController}
+import rest.api.controller.product.{CreateProductController, ListAllProductsController}
+import rest.api.controller.user.{CreateUserController, GetUserController}
 
 object SwaggerDocService extends SwaggerHttpService {
-  override val apiClasses: Set[Class[_]] = Set(classOf[CreateProductController], classOf[ListAllProductsController])
+  override val apiClasses: Set[Class[_]] = Set(classOf[CreateUserController], classOf[GetUserController], classOf[CreateProductController], classOf[ListAllProductsController])
   override val host = "localhost:8080"
   override val info: Info = Info(version = "1.0")
   override val securitySchemes: Map[String, SecurityScheme] =

@@ -1,4 +1,4 @@
-package model.json
+package util.json
 
 import akka.http.scaladsl.marshalling._
 import akka.http.scaladsl.model.MediaTypes._
@@ -15,7 +15,8 @@ import scala.reflect.ClassTag
 
 trait JsonSupport {
 
-  private val mapper = new ObjectMapper()
+  val mapper = new ObjectMapper()
+  mapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
   mapper.registerModule(DefaultScalaModule)
 
   implicit def JacksonMarshaller: ToEntityMarshaller[AnyRef] = {
