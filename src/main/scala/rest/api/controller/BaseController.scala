@@ -1,9 +1,9 @@
 package rest.api.controller
 
-import akka.http.scaladsl.server.{Directives, Route}
+import akka.http.scaladsl.server.{Directives, Route, StandardRoute}
 import akka.util.Timeout
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode404}
-import model.json.JsonSupport
+import util.json.JsonSupport
 
 import scala.concurrent.duration._
 
@@ -34,5 +34,13 @@ class BaseController extends Directives with JsonSupport {
 
   protected def completeWith500(): Route = {
     completeWith500("Unknown internal server error")
+  }
+
+  protected def completeWith401(): StandardRoute = {
+    complete(401, Map("error" -> "Unauthorized"))
+  }
+
+  protected def completeWith403(): StandardRoute = {
+    complete(403, Map("error" -> "Forbidden"))
   }
 }

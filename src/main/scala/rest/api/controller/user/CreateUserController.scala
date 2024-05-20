@@ -16,6 +16,8 @@ import model.dto.UserDto
 import rest.api.controller.BaseController
 import util.{ActorType, Actors}
 
+import scala.concurrent.Future
+
 object CreateUserController {
   def apply(implicit system: ActorSystem[_]): Route = new CreateUserController().route()
 }
@@ -34,8 +36,8 @@ class CreateUserController(implicit system: ActorSystem[_]) extends BaseControll
   )
   def route(): Route = post {
     entity(as[CreateUserCommand]) { createUserCommand =>
-      val actorRef = Actors.getActorRef(ActorType.USER_DATABASE)
-      val result = actorRef.ask(ref => Command(createUserCommand, ref))
+      val actorRef = Actors.getActorRef(ActorType.AUTH_SERVICE)
+      val result: Future[Any] = actorRef.ask(ref => Command(createUserCommand, ref))
       onSuccess(result) {
         case user: User => complete(StatusCodes.Created, user.toUserDto)
         case other => completeNegative(other)

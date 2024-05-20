@@ -4,7 +4,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.UserTable
-import model.command.{CreateUserCommand, GetUserCommand}
+import model.command.{CreateUserCommand, GetUserCommand, ValidateUserCommand}
 import model.command.abstracts.Command
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode404}
 import model.domain.User
@@ -38,8 +38,19 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
         }
       case getUserCommand: GetUserCommand =>
         getUserByEmail(getUserCommand.email).onComplete {
-          case Success(user) => msg.replyTo ! (if (user.isDefined) user.get else ExceptionWithResponseCode404(
-            s"User with email ${getUserCommand.email} not found"))
+          case Success(user) =>
+            if (user.isEmpty) {
+              msg.replyTo ! ExceptionWithResponseCode404(s"User with email ${getUserCommand.email} not found")
+              return this
+            }
+            if (msg.internalCommand != null) {
+              msg.internalCommand.internalCommand match {
+                case validateUserCommand: ValidateUserCommand =>
+                  msg.internalCommand.replyInternallyTo ! Command(ValidateUserCommand(validateUserCommand.givenPassword, user.get), msg.replyTo)
+              }
+            } else {
+              msg.replyTo ! user.get
+            }
           case Failure(exception) => msg.replyTo ! exception
         }
     }

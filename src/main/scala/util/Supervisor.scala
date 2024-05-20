@@ -4,6 +4,7 @@ import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import akka.actor.typed.{Behavior, PostStop, Signal}
 import database.repository.{ProductRepository, UserRepository}
 import model.command.abstracts.Command
+import service.AuthService
 
 object Supervisor {
   def apply(): Behavior[Command] = {
@@ -24,8 +25,12 @@ class Supervisor(context: ActorContext[Command]) extends AbstractBehavior[Comman
   }
   
   private def registerActors(): Unit = {
+    //DATABASE ACTORS
     Actors.addActorRef(ActorType.PRODUCT_DATABASE, context.spawn(ProductRepository(), ActorType.PRODUCT_DATABASE.name))
     Actors.addActorRef(ActorType.USER_DATABASE, context.spawn(UserRepository(), ActorType.USER_DATABASE.name))
+
+    //SERVICE ACTORS
+    Actors.addActorRef(ActorType.AUTH_SERVICE, context.spawn(AuthService(), ActorType.AUTH_SERVICE.name))
   }
 
   private def unregisterActors(): Unit = {

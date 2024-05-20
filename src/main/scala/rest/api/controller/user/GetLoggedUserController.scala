@@ -4,10 +4,10 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import jakarta.ws.rs.{GET, Path}
 import model.command.GetUserCommand
 import model.command.abstracts.Command
@@ -19,12 +19,12 @@ import util.{ActorType, Actors}
 
 import scala.concurrent.Future
 
-object GetUserController {
-  def apply(implicit system: ActorSystem[_], email: String): Route = new GetUserController().route()
+object GetLoggedUserController {
+  def apply(implicit system: ActorSystem[_]): Route = new GetLoggedUserController().route()
 }
 
-@Path("/api/v1/user/{email}")
-class GetUserController(implicit system: ActorSystem[_], val email: String) extends BaseController {
+@Path("/api/v1/user/")
+class GetLoggedUserController(implicit system: ActorSystem[_]) extends BaseController {
 
   @GET
   @Operation(summary = "Get user by email", tags = Array("user"),
@@ -36,11 +36,17 @@ class GetUserController(implicit system: ActorSystem[_], val email: String) exte
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
   def route(): Route = get {
-    val actorRef = Actors.getActorRef(ActorType.USER_DATABASE)
-    val result: Future[Any] = actorRef.ask(ref => Command(GetUserCommand(email), ref))
-    onSuccess(result) {
-      case user: User => complete(StatusCodes.OK, user.toUserDto)
-      case other => completeNegative(other)
+    TokenAuthorization.authenticated { claims =>
+      val actorRef = Actors.getActorRef(ActorType.USER_DATABASE)
+      val email = claims.get("email")
+      if (email.isEmpty) {
+        return completeWith401()
+      }
+      val result: Future[Any] = actorRef.ask(ref => Command(GetUserCommand(email.get), ref))
+      onSuccess(result) {
+        case user: User => complete(StatusCodes.OK, user.toUserDto)
+        case other => completeNegative(other)
+      }
     }
   }
 }

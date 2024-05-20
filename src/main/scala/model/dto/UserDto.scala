@@ -6,8 +6,6 @@ case class UserDto(@Schema(name = "user_id", example = "1")
                    userId: Long,
                    @Schema(example = "example@wp.pl")
                    email: String,
-                   @Schema(example = "password")
-                   password: String,
                    @Schema(example = "male")
                    sex: Option[String],
                    @Schema(example = "25")

@@ -16,6 +16,8 @@ import model.dto.ProductDto
 import rest.api.controller.BaseController
 import util.{ActorType, Actors}
 
+import scala.concurrent.Future
+
 object CreateProductController {
   def apply(implicit system: ActorSystem[_]): Route = new CreateProductController().route()
 }
@@ -35,7 +37,7 @@ class CreateProductController(implicit system: ActorSystem[_]) extends BaseContr
   def route(): Route = post {
     entity(as[CreateProductCommand]) { createProductCommand =>
       val actorRef = Actors.getActorRef(ActorType.PRODUCT_DATABASE)
-      val result = actorRef.ask(ref => Command(createProductCommand, ref))
+      val result: Future[Any] = actorRef.ask(ref => Command(createProductCommand, ref))
       onSuccess(result) {
         case product: Product => complete(StatusCodes.Created, product.toProductDto)
         case other => completeNegative(other)
