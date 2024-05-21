@@ -30,7 +30,7 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
         insertUser(createUserCommand.toUser).onComplete {
           case Success(user) =>
             val response = Command(ReturnCommand(user))
-            response.delayedRequests = msg.delayedRequests
+            response.addAllDelayedRequests(msg.delayedRequests)
             msg.replyTo ! response
           case Failure(exception) =>
             exception match {
@@ -47,7 +47,7 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
               return this
             }
             val response = Command(ReturnCommand(user.get))
-            response.delayedRequests = msg.delayedRequests
+            response.addAllDelayedRequests(msg.delayedRequests)
             msg.replyTo ! response
           case Failure(exception) => msg.replyTo ! Command(ReturnCommand(exception))
         }
