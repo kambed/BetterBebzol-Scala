@@ -31,6 +31,7 @@ class LoginUserController(implicit system: ActorSystem[_]) extends BaseControlle
     responses = Array(
       new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[UserTokenDto])))),
       new ApiResponse(responseCode = "401", description = "Unauthorized"),
+      new ApiResponse(responseCode = "404", description = "User not found"),
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
   def route(): Route = post {
