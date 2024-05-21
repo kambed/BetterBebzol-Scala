@@ -30,7 +30,7 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
         insertUser(createUserCommand.toUser).onComplete {
           case Success(user) =>
             val response = Command(ReturnCommand(user))
-            response.delayedRequests = msg.delayedRequests
+            response.addAllDelayedRequests(msg.delayedRequests)
             msg.replyTo ! response
           case Failure(exception) =>
             exception match {
@@ -43,13 +43,14 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
         getUserByEmail(getUserCommand.email).onComplete {
           case Success(user) =>
             if (user.isEmpty) {
-              msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode404(s"User with email ${getUserCommand.email} not found")))
+              msg.getLastDelayedRequestAndRemoveAll.getOrElse(msg).replyTo !
+                Command(ReturnCommand(ExceptionWithResponseCode404(s"User with email ${getUserCommand.email} not found")))
               return this
             }
             val response = Command(ReturnCommand(user.get))
-            response.delayedRequests = msg.delayedRequests
+            response.addAllDelayedRequests(msg.delayedRequests)
             msg.replyTo ! response
-          case Failure(exception) => msg.replyTo ! Command(ReturnCommand(exception))
+          case Failure(exception) => msg.getLastDelayedRequestAndRemoveAll.getOrElse(msg).replyTo ! Command(ReturnCommand(exception))
         }
     }
     this

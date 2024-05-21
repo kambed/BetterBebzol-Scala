@@ -3,8 +3,8 @@ package service
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import model.command.abstracts.{Command, ReturnCommand}
-import model.command.exception.ExceptionWithResponseCode400
-import model.command.{CreateUserCommand, GetUserCommand, LoginUserCommand, ValidateUserCommand}
+import model.command.exception.ExceptionWithResponseCode401
+import model.command.{CreateUserCommand, GetUserCommand, LoginUserCommand}
 import model.domain.User
 import util.hash.BCryptHelper
 import util.jwt.TokenAuthorization
@@ -22,28 +22,25 @@ private class AuthService(context: ActorContext[Command]) extends AbstractBehavi
     context.log.info(s"Received message: $msg")
     msg match {
       case command: Command =>
-        var headRequest = Command(null, null)
-        if (command.delayedRequests.nonEmpty) {
-          headRequest = command.delayedRequests.head
-          command.delayedRequests.drop(1)
-        }
+        val headDelayedRequest = command.getFirstDelayedRequestAndRemove.getOrElse(Command(null, null))
         command.command match {
           case createUserCommand: CreateUserCommand =>
             val hashedCreateUserCommand = createUserCommand.copy(password = BCryptHelper.hashPassword(createUserCommand.password))
             actorRef ! Command(hashedCreateUserCommand, command.replyTo)
           case loginUserCommand: LoginUserCommand =>
             val command = Command(GetUserCommand(loginUserCommand.email), context.self)
-            command.delayedRequests += Command(loginUserCommand, msg.replyTo)
+            command.addDelayedRequest(Command(loginUserCommand, msg.replyTo))
             actorRef ! command
           case returnCommand: ReturnCommand =>
-            headRequest.command match {
+            headDelayedRequest.command match {
               case loginUserCommand: LoginUserCommand =>
                 val user = returnCommand.response.asInstanceOf[User]
                 if (BCryptHelper.checkPassword(loginUserCommand.password, user.password)) {
-                  headRequest.replyTo ! Command(ReturnCommand(TokenAuthorization.generateToken(user)))
+                  headDelayedRequest.replyTo ! Command(ReturnCommand(TokenAuthorization.generateToken(user)))
                 } else {
-                  headRequest.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400("Invalid password")))
+                  headDelayedRequest.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode401("Invalid email or password")))
                 }
+              case _ => headDelayedRequest.replyTo ! Command(returnCommand)
             }
         }
     }
