@@ -1,9 +1,12 @@
 package model.command.abstracts
 
 import akka.actor.typed.ActorRef
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import io.swagger.v3.oas.annotations.Hidden
 
 import scala.collection.mutable.ListBuffer
 
+@JsonIgnoreProperties(Array("delayedRequests"))
 class BaseCommand(val delayedRequests: ListBuffer[Command] = ListBuffer()) {
 
   def addDelayedRequest(command: Command): Unit = {
@@ -14,6 +17,7 @@ class BaseCommand(val delayedRequests: ListBuffer[Command] = ListBuffer()) {
     delayedRequests ++= commands
   }
 
+  @Hidden
   def getFirstDelayedRequestAndRemove: Option[Command] = {
     if (delayedRequests.isEmpty) {
       None
@@ -24,6 +28,7 @@ class BaseCommand(val delayedRequests: ListBuffer[Command] = ListBuffer()) {
     }
   }
 
+  @Hidden
   def getLastDelayedRequestAndRemoveAll: Option[Command] = {
     if (delayedRequests.isEmpty) {
       None

@@ -27,12 +27,9 @@ object GetLoggedUserController {
 class GetLoggedUserController(implicit system: ActorSystem[_]) extends BaseController {
 
   @GET
-  @Operation(summary = "Get user by email", tags = Array("user"),
-    parameters = Array(
-      new Parameter(name = "email", in = ParameterIn.PATH, required = true, description = "User email", content = Array(new Content(schema = new Schema(implementation = classOf[String]))))),
+  @Operation(summary = "Get logged in user", tags = Array("user"),
     responses = Array(
       new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[UserDto])))),
-      new ApiResponse(responseCode = "404", description = "User not found"),
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
   def route(): Route = get {
