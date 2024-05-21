@@ -1,12 +1,13 @@
 package util.jwt
 
 import akka.http.scaladsl.server.Directive1
+import com.typesafe.config.ConfigFactory
 import model.domain.User
 import pdi.jwt.{Jwt, JwtAlgorithm}
 import rest.api.controller.BaseController
 
 object TokenAuthorization extends BaseController {
-  private val secretKey = "super_secret_key"
+  private val secretKey = ConfigFactory.load().getString("jwt.secret")
 
   def generateToken(user: User): String = {
     Jwt.encode(s"""{"id":${user.userId},"email":"${user.email}"}""", secretKey, JwtAlgorithm.HS256)

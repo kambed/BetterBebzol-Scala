@@ -40,6 +40,7 @@ private class AuthService(context: ActorContext[Command]) extends AbstractBehavi
                 } else {
                   headRequest.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400("Invalid password")))
                 }
+              case _ => headRequest.replyTo ! Command(returnCommand)
             }
         }
     }

@@ -23,6 +23,16 @@ class BaseCommand(val delayedRequests: ListBuffer[Command] = ListBuffer()) {
       Some(head)
     }
   }
+
+  def getLastDelayedRequestAndRemoveAll: Option[Command] = {
+    if (delayedRequests.isEmpty) {
+      None
+    } else {
+      val last = delayedRequests.last
+      delayedRequests.clear()
+      Some(last)
+    }
+  }
 }
 
 case class Command(command: BaseCommand, replyTo: ActorRef[Command] = null) extends BaseCommand
