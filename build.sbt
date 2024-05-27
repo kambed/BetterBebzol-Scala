@@ -20,6 +20,7 @@ val SwaggerJaxrs2JakartaVersion = "2.2.21"
 val JacksonVersion = "2.17.1"
 val MySqlConnectorVersion = "8.0.33"
 val SlickVersion = "3.5.1"
+val ConfigVersion = "0.6.1"
 libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingVersion,
   "ch.qos.logback" % "logback-classic" % LogbackVersion,
@@ -34,5 +35,6 @@ libraryDependencies ++= Seq(
   "mysql" % "mysql-connector-java" % MySqlConnectorVersion,
   "com.typesafe.slick" %% "slick" % SlickVersion,
   "com.github.jwt-scala" %% "jwt-core" % "10.0.1",
-  "at.favre.lib" % "bcrypt" % "0.10.2"
+  "at.favre.lib" % "bcrypt" % "0.10.2",
+  "com.github.kxbmap" %% "configs" % ConfigVersion
 )
