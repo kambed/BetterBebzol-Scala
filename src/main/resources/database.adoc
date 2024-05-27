@@ -45,7 +45,6 @@ quantity : float
 }
 
 User ||..o{ Meal
-User ||..o{ Product
 MealProduct }o..|| Product
 Meal ||..o{ MealProduct
 ----
