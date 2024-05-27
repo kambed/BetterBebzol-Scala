@@ -16,12 +16,12 @@ CREATE TABLE Meal
 (
     meal_id       bigint AUTO_INCREMENT PRIMARY KEY,
     user_id       bigint,
-    meal_name     VARCHAR(255) NOT NULL,
-    calories      INT,
+    meal_time     VARCHAR(50) NOT NULL,
+    calories      FLOAT,
     protein       FLOAT,
     fat           FLOAT,
     carbohydrates FLOAT,
-    date          DATE         NOT NULL,
+    date          DATE NOT NULL,
     FOREIGN KEY (user_id) REFERENCES User (user_id)
 );
 
@@ -29,13 +29,11 @@ CREATE TABLE Meal
 CREATE TABLE Product
 (
     product_id    bigint AUTO_INCREMENT PRIMARY KEY,
-    user_id       bigint,
     product_name  VARCHAR(255) NOT NULL,
-    calories      INT NOT NULL,
+    calories      FLOAT NOT NULL,
     protein       FLOAT,
     fat           FLOAT,
     carbohydrates FLOAT,
-    FOREIGN KEY (user_id) REFERENCES User (user_id)
 );
 
 -- MealProduct table
@@ -43,7 +41,7 @@ CREATE TABLE MealProduct
 (
     meal_id    bigint,
     product_id bigint,
-    quantity   FLOAT,
+    quantity   INT NOT NULL,
     PRIMARY KEY (meal_id, product_id),
     FOREIGN KEY (meal_id) REFERENCES Meal (meal_id),
     FOREIGN KEY (product_id) REFERENCES Product (product_id)
