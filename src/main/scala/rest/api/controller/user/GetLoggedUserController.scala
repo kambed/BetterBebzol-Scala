@@ -40,7 +40,7 @@ class GetLoggedUserController(implicit system: ActorSystem[_]) extends BaseContr
       if (email.isEmpty) {
         throw ExceptionWithResponseCode401("User not found")
       }
-      val result: Future[Command] = Actors.getActorRef(ActorType.USER_DATABASE).ask(ref => Command(GetUserCommand(email.get), ref))
+      val result: Future[Command] = Actors.getActorRef(ActorType.USER_DATABASE).ask(ref => Command(GetUserCommand(email.get.toString), ref))
       onSuccess(result) { result: Command =>
         result.command match {
           case returnCommand: ReturnCommand => returnCommand.response match {

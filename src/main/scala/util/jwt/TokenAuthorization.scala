@@ -13,7 +13,7 @@ object TokenAuthorization extends BaseController {
     Jwt.encode(s"""{"id":${user.userId},"email":"${user.email}"}""", secretKey, JwtAlgorithm.HS256)
   }
 
-  def authenticated: Directive1[Map[String, String]] = {
+  def authenticated: Directive1[Map[String, Any]] = {
     optionalHeaderValueByName("Authorization").flatMap { tokenFromUser =>
       val jwtToken = tokenFromUser.getOrElse("").split(" ")
       if (jwtToken.length != 2 || jwtToken(0) != "Bearer") {

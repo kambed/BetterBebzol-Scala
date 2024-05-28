@@ -2,7 +2,7 @@ package util
 
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import akka.actor.typed.{Behavior, PostStop, Signal}
-import database.repository.{ProductRepository, UserRepository}
+import database.repository.{MealRepository, ProductRepository, UserRepository}
 import model.command.abstracts.Command
 import service.AuthService
 
@@ -28,6 +28,7 @@ class Supervisor(context: ActorContext[Command]) extends AbstractBehavior[Comman
     //DATABASE ACTORS
     Actors.addActorRef(ActorType.PRODUCT_DATABASE, context.spawn(ProductRepository(), ActorType.PRODUCT_DATABASE.name))
     Actors.addActorRef(ActorType.USER_DATABASE, context.spawn(UserRepository(), ActorType.USER_DATABASE.name))
+    Actors.addActorRef(ActorType.MEAL_DATABASE, context.spawn(MealRepository(), ActorType.MEAL_DATABASE.name))
 
     //SERVICE ACTORS
     Actors.addActorRef(ActorType.AUTH_SERVICE, context.spawn(AuthService(), ActorType.AUTH_SERVICE.name))

@@ -5,13 +5,15 @@ import akka.http.scaladsl.server.Route
 import com.github.swagger.akka.SwaggerHttpService
 import com.github.swagger.akka.model.Info
 import io.swagger.v3.oas.models.security.{SecurityRequirement, SecurityScheme}
+import rest.api.controller.meal.CreateMealController
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
 import rest.api.controller.user._
 
 object SwaggerDocService extends SwaggerHttpService {
   private val userControllers = Set(classOf[CreateUserController], classOf[EditUserController], classOf[GetUserController], classOf[GetLoggedUserController], classOf[LoginUserController], classOf[EditUserPasswordController])
   private val productControllers = Set(classOf[CreateProductController], classOf[ListAllProductsController])
-  override val apiClasses: Set[Class[_]] = userControllers ++ productControllers
+  private val mealControllers = Set(classOf[CreateMealController])
+  override val apiClasses: Set[Class[_]] = userControllers ++ productControllers ++ mealControllers
   override val host = "localhost:8080"
   override val info: Info = Info(version = "1.0")
   private final val bearer = new SecurityScheme().name("Bearer Security").description("Bearer Token based")
