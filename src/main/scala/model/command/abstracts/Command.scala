@@ -16,28 +16,29 @@ class BaseCommand(val delayedRequests: ListBuffer[Command] = ListBuffer()) {
   def addAllDelayedRequests(commands: ListBuffer[Command]): Unit = {
     delayedRequests ++= commands
   }
+}
+
+case class Command(command: BaseCommand, replyTo: ActorRef[Command] = null) extends BaseCommand {
 
   @Hidden
-  def getFirstDelayedRequestAndRemove: Option[Command] = {
+  def getLastDelayedRequestAndRemove: Command = {
     if (delayedRequests.isEmpty) {
-      None
+      this
     } else {
-      val head = delayedRequests.head
-      delayedRequests.remove(0)
-      Some(head)
+      val last = delayedRequests.last
+      delayedRequests.remove(delayedRequests.size - 1)
+      last
     }
   }
 
   @Hidden
-  def getLastDelayedRequestAndRemoveAll: Option[Command] = {
+  def getFirstDelayedRequestAndRemoveAll: Command = {
     if (delayedRequests.isEmpty) {
-      None
+      this
     } else {
-      val last = delayedRequests.last
+      val head = delayedRequests.head
       delayedRequests.clear()
-      Some(last)
+      head
     }
   }
 }
-
-case class Command(command: BaseCommand, replyTo: ActorRef[Command] = null) extends BaseCommand

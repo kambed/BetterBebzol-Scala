@@ -26,7 +26,7 @@ object CreateUserController {
 class CreateUserController(implicit system: ActorSystem[_]) extends BaseController {
 
   @POST
-  @Operation(summary = "Register user", tags = Array("user"),
+  @Operation(summary = "Create user", tags = Array("user"),
     requestBody = new RequestBody(required = true,
       content = Array(new Content(schema = new Schema(implementation = classOf[CreateUserCommand])))),
     responses = Array(

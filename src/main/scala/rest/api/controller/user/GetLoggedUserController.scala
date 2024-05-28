@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{GET, Path}
 import model.command.GetUserCommand
 import model.command.abstracts.{Command, ReturnCommand}
+import model.command.exception.ExceptionWithResponseCode401
 import model.domain.User
 import model.dto.UserDto
 import rest.api.controller.BaseController
@@ -29,13 +30,15 @@ class GetLoggedUserController(implicit system: ActorSystem[_]) extends BaseContr
   @Operation(summary = "Get logged in user", tags = Array("user"),
     responses = Array(
       new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[UserDto])))),
+      new ApiResponse(responseCode = "401", description = "Unauthorized"),
+      new ApiResponse(responseCode = "403", description = "Forbidden"),
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
   def route(): Route = get {
     TokenAuthorization.authenticated { claims =>
       val email = claims.get("email")
       if (email.isEmpty) {
-        return completeWith401()
+        throw ExceptionWithResponseCode401("User not found")
       }
       val result: Future[Command] = Actors.getActorRef(ActorType.USER_DATABASE).ask(ref => Command(GetUserCommand(email.get.toString), ref))
       onSuccess(result) { result: Command =>
