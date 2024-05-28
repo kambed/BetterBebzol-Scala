@@ -5,6 +5,7 @@ import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpResponse}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{RejectionHandler, Route}
 import model.command.abstracts.Command
+import rest.api.controller.meal.CreateMealController
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
 import rest.api.controller.user.{CreateUserController, GetLoggedUserController, GetUserController, LoginUserController}
 import util.swagger.SwaggerDocService
@@ -15,7 +16,8 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
     cors()(pathPrefix("api") {
       pathPrefix("v1") {
         productRoutes ~
-          userRoutes
+          userRoutes ~
+          mealRoutes
       }
     } ~ SwaggerDocService.routes)
   )
@@ -29,6 +31,13 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
     } ~ path("login") {
       LoginUserController(system)
     }
+  }
+
+  private lazy val mealRoutes: Route = path("meal") {
+//    pathEnd {
+//      CreateMealController(system)
+//    }
+    CreateMealController(system)
   }
 
   private lazy val productRoutes: Route = path("product") {

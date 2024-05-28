@@ -22,27 +22,27 @@ class BaseController extends Directives with JsonSupport {
   }
 
   protected def completeWith400(error: String): Route = {
-    complete(400, Map("error" -> error))
+    complete(400, Map("message" -> error))
   }
 
   protected def completeWith401(error: String): Route = {
-    complete(401, Map("error" -> error))
+    complete(401, Map("message" -> error))
   }
 
   protected def completeWith404(error: String): Route = {
-    complete(404, Map("error" -> error))
+    complete(404, Map("message" -> error))
   }
 
   protected def completeWith500(error: String): Route = {
-    complete(500, Map("error" -> error))
+    complete(500, Map("message" -> error))
   }
 
   protected def completeWith401(): StandardRoute = {
-    complete(401, Map("error" -> "Unauthorized"))
+    complete(401, Map("message" -> "Unauthorized"))
   }
 
   protected def completeWith403(): StandardRoute = {
-    complete(403, Map("error" -> "Forbidden"))
+    complete(403, Map("message" -> "Forbidden"))
   }
 
   protected def completeWith500(): Route = {

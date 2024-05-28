@@ -4,9 +4,9 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.UserTable
-import model.command.{CreateUserCommand, GetUserCommand, ValidateUserCommand}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode404}
+import model.command.{CreateUserCommand, GetUserCommand}
 import model.domain.User
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery

@@ -4,10 +4,9 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import io.swagger.v3.oas.annotations.enums.ParameterIn
+import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import jakarta.ws.rs.{GET, Path}
 import model.command.GetUserCommand
 import model.command.abstracts.{Command, ReturnCommand}
@@ -38,7 +37,7 @@ class GetLoggedUserController(implicit system: ActorSystem[_]) extends BaseContr
       if (email.isEmpty) {
         return completeWith401()
       }
-      val result: Future[Command] = Actors.getActorRef(ActorType.USER_DATABASE).ask(ref => Command(GetUserCommand(email.get), ref))
+      val result: Future[Command] = Actors.getActorRef(ActorType.USER_DATABASE).ask(ref => Command(GetUserCommand(email.get.toString), ref))
       onSuccess(result) { result: Command =>
         result.command match {
           case returnCommand: ReturnCommand => returnCommand.response match {
