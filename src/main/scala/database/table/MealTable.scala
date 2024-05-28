@@ -1,7 +1,7 @@
 package database.table
 
-import model.domain.MealTime.MealType
-import model.domain.{Meal, MealTime}
+import model.domain.MealType.MealType
+import model.domain.{Meal, MealType}
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcType
 import slick.jdbc.MySQLProfile.api._
@@ -27,6 +27,6 @@ class MealTable(tag: Tag) extends Table[Meal](tag, "Meal") {
 
   implicit val mealTypeMapper: JdbcType[MealType] with BaseTypedType[MealType] = MappedColumnType.base[MealType, String](
     e => e.toString,
-    s => MealTime.withName(s)
+    s => MealType.withName(s)
   )
 }

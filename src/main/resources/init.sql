@@ -16,12 +16,12 @@ CREATE TABLE Meal
 (
     meal_id       bigint AUTO_INCREMENT PRIMARY KEY,
     user_id       bigint,
-    meal_time     VARCHAR(50) NOT NULL,
+    meal_type     VARCHAR(50) NOT NULL,
     calories      FLOAT,
     protein       FLOAT,
     fat           FLOAT,
     carbohydrates FLOAT,
-    date          DATE NOT NULL,
+    date          VARCHAR(50) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES User (user_id)
 );
 

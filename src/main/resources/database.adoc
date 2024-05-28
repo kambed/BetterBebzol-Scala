@@ -19,7 +19,7 @@ how_active : string
 entity "Meal" {
 *meal_id : number <<generated>>
 --
-*meal_name : string
+*meal_type : string
 *calories : int
 protein : float
 fat : float

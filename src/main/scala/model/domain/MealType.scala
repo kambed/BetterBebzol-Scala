@@ -1,7 +1,7 @@
 package model.domain
 
 
-object MealTime extends Enumeration {
+object MealType extends Enumeration {
   type MealType = Value
 
   val BREAKFAST = Value("breakfast")
