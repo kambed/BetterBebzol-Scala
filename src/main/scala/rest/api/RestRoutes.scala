@@ -8,7 +8,7 @@ import model.command.abstracts.Command
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode401, ExceptionWithResponseCode403, ExceptionWithResponseCode404}
 import rest.api.controller.meal.CreateMealController
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
-import rest.api.controller.user.{CreateUserController, EditUserController, EditUserPasswordController, GetLoggedUserController, GetUserController, LoginUserController}
+import rest.api.controller.user._
 import util.swagger.SwaggerDocService
 
 class RestRoutes(implicit system: ActorSystem[Command]) {
