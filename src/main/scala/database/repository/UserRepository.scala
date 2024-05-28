@@ -4,7 +4,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.UserTable
-import model.command.{CreateUserCommand, GetUserCommand, ValidateUserCommand}
+import model.command.{CreateUserCommand, EditUserCommand, GetUserCommand, ValidateUserCommand}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode404}
 import model.domain.User
@@ -39,28 +39,49 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
               case _ => msg.replyTo ! Command(ReturnCommand(exception))
             }
         }
+      case editUserCommand: EditUserCommand =>
+        updateUser(editUserCommand.toUser).onComplete {
+          case Success(user) =>
+            if (user.isEmpty) {
+              msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode404(s"User with email ${editUserCommand.email} not found")))
+              return this
+            }
+            val response = Command(ReturnCommand(user.get))
+            response.addAllDelayedRequests(msg.delayedRequests)
+            msg.replyTo ! response
+          case Failure(exception) => msg.replyTo ! Command(ReturnCommand(exception))
+        }
       case getUserCommand: GetUserCommand =>
         getUserByEmail(getUserCommand.email).onComplete {
           case Success(user) =>
             if (user.isEmpty) {
-              msg.getLastDelayedRequestAndRemoveAll.getOrElse(msg).replyTo !
+              msg.getFirstDelayedRequestAndRemoveAll.replyTo !
                 Command(ReturnCommand(ExceptionWithResponseCode404(s"User with email ${getUserCommand.email} not found")))
               return this
             }
             val response = Command(ReturnCommand(user.get))
             response.addAllDelayedRequests(msg.delayedRequests)
             msg.replyTo ! response
-          case Failure(exception) => msg.getLastDelayedRequestAndRemoveAll.getOrElse(msg).replyTo ! Command(ReturnCommand(exception))
+          case Failure(exception) => msg.getFirstDelayedRequestAndRemoveAll.replyTo ! Command(ReturnCommand(exception))
         }
     }
     this
   }
 
-  private def getUserByEmail(email: String): Future[Option[User]] = {
-    MySQLConnection.db.run(table.filter(_.email === email).result.headOption)
-  }
-
   private def insertUser(user: User): Future[User] = {
     MySQLConnection.db.run((table returning table.map(_.userId)) += user).map(id => user.copy(userId = id))
+  }
+
+  private def updateUser(user: User): Future[Option[User]] = {
+    getUserByEmail(user.email).flatMap {
+      case Some(dbUser) =>
+        val modifiedUser = user.copy(userId = dbUser.userId, password = dbUser.password)
+        MySQLConnection.db.run(table.filter(_.email === user.email).update(modifiedUser)).map(_ => Some(modifiedUser))
+      case None => Future.successful(None)
+    }
+  }
+
+  private def getUserByEmail(email: String): Future[Option[User]] = {
+    MySQLConnection.db.run(table.filter(_.email === email).result.headOption)
   }
 }

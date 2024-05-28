@@ -4,17 +4,16 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import jakarta.ws.rs.{GET, Path}
 import model.command.GetUserCommand
 import model.command.abstracts.{Command, ReturnCommand}
 import model.domain.User
-import model.dto.{UserDto, UserTokenDto}
+import model.dto.UserDto
 import rest.api.controller.BaseController
-import util.jwt.TokenAuthorization
 import util.{ActorType, Actors}
 
 import scala.concurrent.Future

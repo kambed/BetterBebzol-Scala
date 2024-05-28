@@ -22,7 +22,7 @@ private class AuthService(context: ActorContext[Command]) extends AbstractBehavi
     context.log.info(s"Received message: $msg")
     msg match {
       case command: Command =>
-        val headDelayedRequest = command.getFirstDelayedRequestAndRemove.getOrElse(Command(null, null))
+        val headDelayedRequest = command.getLastDelayedRequestAndRemove
         command.command match {
           case createUserCommand: CreateUserCommand =>
             val hashedCreateUserCommand = createUserCommand.copy(password = BCryptHelper.hashPassword(createUserCommand.password))
