@@ -4,7 +4,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.UserTable
-import model.command.{CreateUserCommand, EditUserCommand, GetUserCommand, ValidateUserCommand}
+import model.command.{CreateUserCommand, EditUserCommand, EditUserPasswordCommand, GetUserCommand, ValidateUserCommand}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode404}
 import model.domain.User
@@ -51,6 +51,11 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
             msg.replyTo ! response
           case Failure(exception) => msg.replyTo ! Command(ReturnCommand(exception))
         }
+      case editUserPasswordCommand: EditUserPasswordCommand =>
+        updateUserPassword(editUserPasswordCommand.email, editUserPasswordCommand.password).onComplete {
+          case Success(_) => msg.replyTo ! Command(ReturnCommand(editUserPasswordCommand.email))
+          case Failure(exception) => msg.replyTo ! Command(ReturnCommand(exception))
+        }
       case getUserCommand: GetUserCommand =>
         getUserByEmail(getUserCommand.email).onComplete {
           case Success(user) =>
@@ -78,6 +83,13 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
         val modifiedUser = user.copy(userId = dbUser.userId, password = dbUser.password)
         MySQLConnection.db.run(table.filter(_.email === user.email).update(modifiedUser)).map(_ => Some(modifiedUser))
       case None => Future.successful(None)
+    }
+  }
+
+  private def updateUserPassword(email: String, password: String) = {
+    MySQLConnection.db.run(table.filter(_.email === email).map(_.password).update(password)).flatMap {
+      case 0 => Future.failed(new Exception("User not found"))
+      case _ => Future.successful(())
     }
   }
 

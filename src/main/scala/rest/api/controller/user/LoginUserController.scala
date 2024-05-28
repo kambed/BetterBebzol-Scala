@@ -25,7 +25,7 @@ object LoginUserController {
 class LoginUserController(implicit system: ActorSystem[_]) extends BaseController {
 
   @POST
-  @Operation(summary = "Login user", tags = Array("user"),
+  @Operation(summary = "Login user", tags = Array("login"),
     requestBody = new RequestBody(required = true,
       content = Array(new Content(schema = new Schema(implementation = classOf[LoginUserCommand])))),
     responses = Array(

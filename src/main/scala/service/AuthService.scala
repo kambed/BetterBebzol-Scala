@@ -4,7 +4,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.ExceptionWithResponseCode401
-import model.command.{CreateUserCommand, GetUserCommand, LoginUserCommand}
+import model.command.{CreateUserCommand, EditUserPasswordCommand, GetUserCommand, LoginUserCommand}
 import model.domain.User
 import util.hash.BCryptHelper
 import util.jwt.TokenAuthorization
@@ -31,6 +31,9 @@ private class AuthService(context: ActorContext[Command]) extends AbstractBehavi
             val command = Command(GetUserCommand(loginUserCommand.email), context.self)
             command.addDelayedRequest(Command(loginUserCommand, msg.replyTo))
             actorRef ! command
+          case editUserPasswordCommand: EditUserPasswordCommand =>
+            val hashedEditUserPasswordCommand = editUserPasswordCommand.copy(password = BCryptHelper.hashPassword(editUserPasswordCommand.password))
+            actorRef ! Command(hashedEditUserPasswordCommand, command.replyTo)
           case returnCommand: ReturnCommand =>
             headDelayedRequest.command match {
               case loginUserCommand: LoginUserCommand =>

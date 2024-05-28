@@ -7,7 +7,7 @@ import akka.http.scaladsl.server.{ExceptionHandler, RejectionHandler, Route}
 import model.command.abstracts.Command
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode401, ExceptionWithResponseCode403, ExceptionWithResponseCode404}
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
-import rest.api.controller.user.{CreateUserController, EditUserController, GetLoggedUserController, GetUserController, LoginUserController}
+import rest.api.controller.user.{CreateUserController, EditUserController, EditUserPasswordController, GetLoggedUserController, GetUserController, LoginUserController}
 import util.swagger.SwaggerDocService
 
 class RestRoutes(implicit system: ActorSystem[Command]) {
@@ -29,7 +29,8 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
     } ~ path(Segment) { email =>
       GetUserController(system, email)
     } ~ path("login") {
-      LoginUserController(system)
+      LoginUserController(system) ~
+        EditUserPasswordController(system)
     }
   }
 
