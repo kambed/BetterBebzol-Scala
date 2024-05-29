@@ -12,7 +12,7 @@ import rest.api.controller.user._
 
 object SwaggerDocService extends SwaggerHttpService {
   private val userControllers = Set(classOf[CreateUserController], classOf[EditUserController], classOf[GetUserController],
-    classOf[GetLoggedUserController], classOf[LoginUserController], classOf[EditUserPasswordController], classOf[GetUserProfileController])
+    classOf[GetLoggedUserController], classOf[LoginUserController], classOf[EditUserPasswordController], classOf[GetUserRecommendationsController])
   private val productControllers = Set(classOf[CreateProductController], classOf[ListAllProductsController])
   private val mealControllers = Set(classOf[CreateMealController])
   override val apiClasses: Set[Class[_]] = userControllers ++ productControllers ++ mealControllers
