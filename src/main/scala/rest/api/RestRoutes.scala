@@ -9,7 +9,7 @@ import ch.megard.akka.http.cors.scaladsl.settings.CorsSettings
 import model.command.abstracts.Command
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode401, ExceptionWithResponseCode403, ExceptionWithResponseCode404}
 import rest.api.controller.login.{EditUserPasswordController, LoginUserController}
-import rest.api.controller.meal.{CreateMealController, EditMealController, GetMealByIdController}
+import rest.api.controller.meal.{CreateMealController, EditMealController, GetAllUserMealsController, GetMealByDateController, GetMealByIdController}
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
 import rest.api.controller.user._
 import util.swagger.SwaggerDocService
@@ -54,6 +54,10 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
       CreateMealController(system)
     } ~ path(LongNumber) { mealId =>
       GetMealByIdController(system, mealId)
+    } ~ path("all") {
+      GetAllUserMealsController(system)
+    } ~ path("date") {
+      GetMealByDateController(system)
     }
   }
 
