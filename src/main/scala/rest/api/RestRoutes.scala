@@ -36,13 +36,13 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
     }
   }
 
-  private lazy val mealRoutes: Route = path("meal") {
+  private lazy val mealRoutes: Route = pathPrefix("meal") {
+    path(LongNumber) { mealId =>
+      EditMealController(system, mealId)
+    } ~
     pathEnd {
       CreateMealController(system)
-    } ~
-      path(LongNumber) { mealId =>
-        EditMealController(system, mealId)
-      }
+    }
   }
 
   private lazy val productRoutes: Route = path("product") {

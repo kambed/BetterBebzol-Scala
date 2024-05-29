@@ -22,10 +22,11 @@ object EditMealController {
   def apply(implicit system: ActorSystem[_], mealId: Long): Route = new EditMealController().route()
 }
 
-@Path("/api/v1/meal/<meal_id>")
+@Path("/api/v1/meal")
 class EditMealController(implicit system: ActorSystem[_], mealId: Long) extends BaseAuthenticatedController {
 
   @PUT
+  @Path("/{mealId}")
   @Operation(summary = "Edit meal", tags = Array("meal"),
     requestBody = new RequestBody(required = true,
       content = Array(new Content(schema = new Schema(implementation = classOf[EditMealCommand])))),
