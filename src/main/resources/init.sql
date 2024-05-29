@@ -8,7 +8,8 @@ CREATE TABLE User
     age        INT,
     height     INT,
     weight     INT,
-    how_active VARCHAR(50)
+    how_active VARCHAR(50),
+    goal       VARCHAR(50)
 );
 
 -- Meal table

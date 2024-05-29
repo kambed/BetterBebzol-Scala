@@ -1,7 +1,8 @@
 package database.table
 
-import model.domain.MealType.MealType
-import model.domain.{Meal, MealType}
+import model.domain.Meal
+import model.domain.enums.MealType
+import model.domain.enums.MealType.MealType
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcType
 import slick.jdbc.MySQLProfile.api._

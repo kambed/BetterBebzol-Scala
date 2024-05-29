@@ -1,4 +1,4 @@
-package model.domain
+package model.domain.enums
 
 
 object MealType extends Enumeration {

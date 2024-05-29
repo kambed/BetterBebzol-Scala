@@ -1,6 +1,6 @@
 package model.domain
 
-import model.domain.MealType.MealType
+import model.domain.enums.MealType.MealType
 import model.dto.MealDto
 
 import java.time.LocalDate
