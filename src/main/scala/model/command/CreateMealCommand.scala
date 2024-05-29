@@ -2,7 +2,8 @@ package model.command
 
 import io.swagger.v3.oas.annotations.media.Schema
 import model.command.abstracts.BaseCommand
-import model.domain.{Meal, MealType}
+import model.domain.Meal
+import model.domain.enums.MealType
 
 case class CreateMealCommand(@Schema(example = "breakfast", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
                              mealType: Option[String],

@@ -2,7 +2,8 @@ package model.command
 
 import io.swagger.v3.oas.annotations.media.Schema
 import model.command.abstracts.BaseCommand
-import model.domain.{User, UserActivity, UserSex}
+import model.domain.User
+import model.domain.enums.{UserActivity, UserSex}
 
 case class EditUserCommand(@Schema(example = "example@wp.pl", requiredMode = Schema.RequiredMode.REQUIRED)
                              email: String,

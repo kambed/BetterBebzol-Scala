@@ -1,8 +1,9 @@
 package database.table
 
-import model.domain.UserActivity.HowActive
-import model.domain.UserSex.Sex
-import model.domain.{User, UserActivity, UserSex}
+import model.domain.User
+import model.domain.enums.UserActivity.HowActive
+import model.domain.enums.UserSex.Sex
+import model.domain.enums.{UserActivity, UserSex}
 import slick.ast.BaseTypedType
 import slick.jdbc.JdbcType
 import slick.jdbc.MySQLProfile.api._

@@ -1,4 +1,4 @@
-package model.domain
+package model.domain.enums
 
 object UserActivity extends Enumeration {
   type HowActive = Value

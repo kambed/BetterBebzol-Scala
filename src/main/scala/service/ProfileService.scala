@@ -3,11 +3,10 @@ package service
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import model.command.abstracts.{Command, ReturnCommand}
-import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode401}
-import model.command.{CreateUserCommand, EditUserPasswordCommand, GetUserCommand, GetUserProfileCommand, LoginUserCommand}
-import model.domain.{User, UserActivity, UserProfile, UserSex}
-import util.hash.BCryptHelper
-import util.jwt.TokenAuthorization
+import model.command.exception.ExceptionWithResponseCode400
+import model.command.{GetUserCommand, GetUserProfileCommand}
+import model.domain.enums.{UserActivity, UserSex}
+import model.domain.{User, UserProfile}
 import util.{ActorType, Actors}
 
 object ProfileService {

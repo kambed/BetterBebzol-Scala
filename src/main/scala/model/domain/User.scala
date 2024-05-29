@@ -1,7 +1,7 @@
 package model.domain
 
-import model.domain.UserActivity.HowActive
-import model.domain.UserSex.Sex
+import model.domain.enums.UserActivity.HowActive
+import model.domain.enums.UserSex.Sex
 import model.dto.UserDto
 
 case class User(userId: Long, email: String, password: String, sex: Option[Sex], age: Option[Int],
