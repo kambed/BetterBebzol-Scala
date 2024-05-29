@@ -22,31 +22,46 @@ private class AuthService(context: ActorContext[Command]) extends AbstractBehavi
     context.log.info(s"Received message: $msg")
     msg match {
       case command: Command =>
-        val headDelayedRequest = command.getLastDelayedRequestAndRemove
         command.command match {
-          case createUserCommand: CreateUserCommand =>
-            val hashedCreateUserCommand = createUserCommand.copy(password = BCryptHelper.hashPassword(createUserCommand.password))
-            actorRef ! Command(hashedCreateUserCommand, command.replyTo)
-          case loginUserCommand: LoginUserCommand =>
-            val command = Command(GetUserCommand(loginUserCommand.email), context.self)
-            command.addDelayedRequest(Command(loginUserCommand, msg.replyTo))
-            actorRef ! command
-          case editUserPasswordCommand: EditUserPasswordCommand =>
-            val hashedEditUserPasswordCommand = editUserPasswordCommand.copy(password = BCryptHelper.hashPassword(editUserPasswordCommand.password))
-            actorRef ! Command(hashedEditUserPasswordCommand, command.replyTo)
-          case returnCommand: ReturnCommand =>
-            headDelayedRequest.command match {
-              case loginUserCommand: LoginUserCommand =>
-                val user = returnCommand.response.asInstanceOf[User]
-                if (BCryptHelper.checkPassword(loginUserCommand.password, user.password)) {
-                  headDelayedRequest.replyTo ! Command(ReturnCommand(TokenAuthorization.generateToken(user)))
-                } else {
-                  headDelayedRequest.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode401("Invalid email or password")))
-                }
-              case _ => headDelayedRequest.replyTo ! Command(returnCommand)
-            }
+          case createUserCommand: CreateUserCommand => handleCreateUserCommand(command, createUserCommand)
+          case loginUserCommand: LoginUserCommand => handleLoginUserCommand(command, loginUserCommand)
+          case editUserPasswordCommand: EditUserPasswordCommand => handleEditUserPasswordCommand(command, editUserPasswordCommand)
+          case returnCommand: ReturnCommand => handleReturnCommand(command, returnCommand)
         }
     }
     this
+  }
+
+  private def handleCreateUserCommand(command: Command, createUserCommand: CreateUserCommand): Unit = {
+    val hashedCreateUserCommand = createUserCommand.copy(password = BCryptHelper.hashPassword(createUserCommand.password))
+    actorRef ! Command(hashedCreateUserCommand, command.replyTo)
+  }
+
+  private def handleLoginUserCommand(command: Command, loginUserCommand: LoginUserCommand): Unit = {
+    val commandNew = Command(GetUserCommand(loginUserCommand.email), context.self)
+    commandNew.addDelayedRequest(Command(loginUserCommand, command.replyTo))
+    actorRef ! commandNew
+  }
+
+  private def handleEditUserPasswordCommand(command: Command, editUserPasswordCommand: EditUserPasswordCommand): Unit = {
+    val hashedEditUserPasswordCommand = editUserPasswordCommand.copy(password = BCryptHelper.hashPassword(editUserPasswordCommand.password))
+    actorRef ! Command(hashedEditUserPasswordCommand, command.replyTo)
+  }
+
+  private def handleReturnCommand(command: Command, returnCommand: ReturnCommand): Unit = {
+    val headDelayedRequest = command.getLastDelayedRequestAndRemove
+    headDelayedRequest.command match {
+      case loginUserCommand: LoginUserCommand => handleReturnLoginUserCommand(headDelayedRequest, returnCommand, loginUserCommand)
+      case _ => headDelayedRequest.replyTo ! Command(returnCommand)
+    }
+  }
+
+  private def handleReturnLoginUserCommand(headDelayedRequest: Command, returnCommand: ReturnCommand, loginUserCommand: LoginUserCommand): Unit = {
+    val user = returnCommand.response.asInstanceOf[User]
+    if (BCryptHelper.checkPassword(loginUserCommand.password, user.password)) {
+      headDelayedRequest.replyTo ! Command(ReturnCommand(TokenAuthorization.generateToken(user)))
+    } else {
+      headDelayedRequest.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode401("Invalid email or password")))
+    }
   }
 }
