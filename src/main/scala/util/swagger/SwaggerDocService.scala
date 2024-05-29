@@ -6,7 +6,7 @@ import com.github.swagger.akka.SwaggerHttpService
 import com.github.swagger.akka.model.Info
 import io.swagger.v3.oas.models.security.{SecurityRequirement, SecurityScheme}
 import rest.api.controller.login.{EditUserPasswordController, LoginUserController}
-import rest.api.controller.meal.CreateMealController
+import rest.api.controller.meal.{CreateMealController, EditMealController, GetAllUserMealsController, GetMealByDateController, GetMealByIdController}
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
 import rest.api.controller.user._
 
@@ -14,7 +14,8 @@ object SwaggerDocService extends SwaggerHttpService {
   private val userControllers = Set(classOf[CreateUserController], classOf[EditUserController], classOf[GetUserController],
     classOf[GetLoggedUserController], classOf[LoginUserController], classOf[EditUserPasswordController], classOf[GetUserRecommendationsController])
   private val productControllers = Set(classOf[CreateProductController], classOf[ListAllProductsController])
-  private val mealControllers = Set(classOf[CreateMealController])
+  private val mealControllers = Set(classOf[CreateMealController], classOf[EditMealController], classOf[GetMealByIdController],
+    classOf[GetAllUserMealsController], classOf[GetMealByDateController])
   override val apiClasses: Set[Class[_]] = userControllers ++ productControllers ++ mealControllers
   override val host = "localhost:8080"
   override val info: Info = Info(version = "1.0")

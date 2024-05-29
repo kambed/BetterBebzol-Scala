@@ -1,4 +1,4 @@
-package model.command
+package model.command.product
 
 import model.command.abstracts.BaseCommand
 
