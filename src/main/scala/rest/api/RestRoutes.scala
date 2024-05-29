@@ -40,7 +40,7 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
       LoginUserController(system) ~
         EditUserPasswordController(system)
     } ~ path("recommendations") {
-      GetUserProfileController(system)
+      GetUserRecommendationsController(system)
     } ~ path(Segment) { email =>
       GetUserController(system, email)
     }

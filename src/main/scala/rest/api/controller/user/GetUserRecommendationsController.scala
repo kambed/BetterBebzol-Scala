@@ -19,15 +19,15 @@ import util.{ActorType, Actors}
 
 import scala.concurrent.Future
 
-object GetUserProfileController {
-  def apply(implicit system: ActorSystem[_]): Route = new GetUserProfileController().route()
+object GetUserRecommendationsController {
+  def apply(implicit system: ActorSystem[_]): Route = new GetUserRecommendationsController().route()
 }
 
 @Path("/api/v1/user/recommendations")
-class GetUserProfileController(implicit system: ActorSystem[_]) extends BaseController {
+class GetUserRecommendationsController(implicit system: ActorSystem[_]) extends BaseController {
 
   @GET
-  @Operation(summary = "Get user profile", tags = Array("user"),
+  @Operation(summary = "Get user recommendations", tags = Array("user"),
     responses = Array(
       new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[UserProfileDto])))),
       new ApiResponse(responseCode = "401", description = "Unauthorized"),
