@@ -2,9 +2,7 @@ package model.dto
 
 import io.swagger.v3.oas.annotations.media.Schema
 
-case class UserDto(@Schema(name = "user_id", example = "1")
-                   userId: Long,
-                   @Schema(example = "example@wp.pl")
+case class UserDto(@Schema(example = "example@wp.pl")
                    email: String,
                    @Schema(example = "male")
                    sex: Option[String],

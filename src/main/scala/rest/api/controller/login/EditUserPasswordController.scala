@@ -1,4 +1,4 @@
-package rest.api.controller.user
+package rest.api.controller.login
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
@@ -8,12 +8,11 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import jakarta.ws.rs.{PUT, Path}
-import model.command.{EditUserCommand, EditUserPasswordCommand}
+import jakarta.ws.rs.core.MediaType
+import jakarta.ws.rs.{Consumes, PUT, Path, Produces}
+import model.command.EditUserPasswordCommand
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode401, ExceptionWithResponseCode403}
-import model.domain.User
-import model.dto.UserDto
 import rest.api.controller.BaseController
 import util.jwt.TokenAuthorization
 import util.{ActorType, Actors}
@@ -28,6 +27,8 @@ object EditUserPasswordController {
 class EditUserPasswordController(implicit system: ActorSystem[_]) extends BaseController {
 
   @PUT
+  @Consumes(Array(MediaType.APPLICATION_JSON))
+  @Produces(Array(MediaType.APPLICATION_JSON))
   @Operation(summary = "Edit user password", tags = Array("login"),
     requestBody = new RequestBody(required = true,
       content = Array(new Content(schema = new Schema(implementation = classOf[EditUserPasswordCommand])))),

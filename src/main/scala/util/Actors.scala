@@ -10,8 +10,10 @@ sealed abstract class ActorType(val name: String)
 object ActorType {
   case object PRODUCT_DATABASE extends ActorType("product-database")
   case object USER_DATABASE extends ActorType("user-database")
-  case object AUTH_SERVICE extends ActorType("auth-service")
   case object MEAL_DATABASE extends ActorType("meal-database")
+
+  case object AUTH_SERVICE extends ActorType("auth-service")
+  case object PROFILE_SERVICE extends ActorType("profile-service")
 }
 
 object Actors {

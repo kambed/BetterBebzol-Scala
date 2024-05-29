@@ -1,4 +1,4 @@
-package rest.api.controller.user
+package rest.api.controller.login
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}

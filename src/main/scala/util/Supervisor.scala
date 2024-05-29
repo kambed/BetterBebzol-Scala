@@ -4,7 +4,7 @@ import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import akka.actor.typed.{Behavior, PostStop, Signal}
 import database.repository.{MealRepository, ProductRepository, UserRepository}
 import model.command.abstracts.Command
-import service.AuthService
+import service.{AuthService, ProfileService}
 
 object Supervisor {
   def apply(): Behavior[Command] = {
@@ -32,6 +32,7 @@ class Supervisor(context: ActorContext[Command]) extends AbstractBehavior[Comman
 
     //SERVICE ACTORS
     Actors.addActorRef(ActorType.AUTH_SERVICE, context.spawn(AuthService(), ActorType.AUTH_SERVICE.name))
+    Actors.addActorRef(ActorType.PROFILE_SERVICE, context.spawn(ProfileService(), ActorType.PROFILE_SERVICE.name))
   }
 
   private def unregisterActors(): Unit = {
