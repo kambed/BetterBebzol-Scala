@@ -2,16 +2,14 @@ package rest.api
 
 import akka.actor.typed.ActorSystem
 import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpMethods, HttpResponse}
-import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ExceptionHandler, RejectionHandler, Route}
+import ch.megard.akka.http.cors.scaladsl.CorsDirectives.cors
 import ch.megard.akka.http.cors.scaladsl.settings.CorsSettings
 import model.command.abstracts.Command
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode401, ExceptionWithResponseCode403, ExceptionWithResponseCode404}
-import rest.api.controller.meal.{CreateMealController, EditMealController}
 import rest.api.controller.login.{EditUserPasswordController, LoginUserController}
-import rest.api.controller.meal.CreateMealController
-import rest.api.controller.meal.{CreateMealController, EditMealController}
+import rest.api.controller.meal.{CreateMealController, EditMealController, GetMealByIdController}
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
 import rest.api.controller.user._
 import util.swagger.SwaggerDocService
@@ -54,6 +52,8 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
     } ~
     pathEnd {
       CreateMealController(system)
+    } ~ path(LongNumber) { mealId =>
+      GetMealByIdController(system, mealId)
     }
   }
 

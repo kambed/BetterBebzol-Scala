@@ -9,7 +9,7 @@ import scala.concurrent.duration._
 
 class BaseController extends Directives with JsonSupport {
 
-  implicit val timeout: Timeout = Timeout(5.seconds)
+  implicit val timeout: Timeout = Timeout(50.seconds)
 
   def completeNegative(value: Any): Route = {
     value match {

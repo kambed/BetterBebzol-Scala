@@ -5,7 +5,8 @@ import java.time.format.DateTimeFormatter
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.Hidden
 import model.command.abstracts.BaseCommand
-import model.domain.{Meal, MealType}
+import model.domain.enums.MealType
+import model.domain.Meal
 
 class CreateMealCommand(
                          @Schema(example = "breakfast", requiredMode = Schema.RequiredMode.REQUIRED)

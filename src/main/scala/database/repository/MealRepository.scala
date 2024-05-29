@@ -34,15 +34,31 @@ private class MealRepository(context: ActorContext[Command]) extends AbstractBeh
 
   private def handleEditMealCommand(command: EditMealCommand, originalMsg: Command): Unit = {
     updateMeal(command.toMeal).onComplete {
-      case Success(mealOpt) => respondToEditMealCommand(mealOpt, command, originalMsg)
-      case Failure(exception) => respondWithFailure(exception, originalMsg)
+      case Success(meal) =>
+        if (meal.isEmpty) {
+          originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode404(s"Meal with id ${command.mealId} not found")))
+          return
+        }
+        val response = Command(ReturnCommand(meal.get))
+        response.addAllDelayedRequests(originalMsg.delayedRequests)
+        originalMsg.replyTo ! response
+      case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
     }
   }
 
   private def handleCreateMealCommand(command: CreateMealCommand, originalMsg: Command): Unit = {
     insertMeal(command.toMeal).onComplete {
-      case Success(meal) => respondWithSuccess(meal, originalMsg)
-      case Failure(exception) => handleCreateMealFailure(exception, originalMsg)
+      case Success(meal) =>
+        val response = Command(ReturnCommand(meal))
+        response.addAllDelayedRequests(originalMsg.delayedRequests)
+        originalMsg.replyTo ! response
+      case Failure(exception) =>
+        exception match {
+          case exception: SQLIntegrityConstraintViolationException =>
+            originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400(exception.getMessage)))
+          case _ => originalMsg.replyTo ! Command(ReturnCommand(exception))
+
+      }
     }
   }
 
@@ -51,37 +67,15 @@ private class MealRepository(context: ActorContext[Command]) extends AbstractBeh
   }
 
   private def updateMeal(meal: Meal): Future[Option[Meal]] = {
-    MySQLConnection.db.run(table.filter(_.mealId === meal.mealId).update(meal)).map {
-      case 0 => None
-      case _ => Some(meal)
+    getMealById(meal.mealId).flatMap {
+      case Some(dbMeal) =>
+        val modifiedMean = meal.copy(mealId = dbMeal.mealId)
+        MySQLConnection.db.run(table.filter(_.mealId === meal.mealId).update(modifiedMean)).map(_ => Some(modifiedMean))
+      case None => Future.successful(None)
     }
   }
 
-  private def respondToEditMealCommand(mealOpt: Option[Meal], command: EditMealCommand, originalMsg: Command): Unit = {
-    if (mealOpt.isEmpty) {
-      originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode404(s"Meal with id ${command.mealId} not found")))
-    } else {
-      val response = Command(ReturnCommand(mealOpt.get))
-      response.addAllDelayedRequests(originalMsg.delayedRequests)
-      originalMsg.replyTo ! response
-    }
-  }
-
-  private def respondWithSuccess(meal: Meal, originalMsg: Command): Unit = {
-    val response = Command(ReturnCommand(meal))
-    response.addAllDelayedRequests(originalMsg.delayedRequests)
-    originalMsg.replyTo ! response
-  }
-
-  private def respondWithFailure(exception: Throwable, originalMsg: Command): Unit = {
-    originalMsg.replyTo ! Command(ReturnCommand(exception))
-  }
-
-  private def handleCreateMealFailure(exception: Throwable, originalMsg: Command): Unit = {
-    exception match {
-      case exception: SQLIntegrityConstraintViolationException =>
-        originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400(exception.getMessage)))
-      case _ => respondWithFailure(exception, originalMsg)
-    }
+  private def getMealById(id: Long): Future[Option[Meal]] = {
+    MySQLConnection.db.run(table.filter(_.mealId === id).result.headOption)
   }
 }

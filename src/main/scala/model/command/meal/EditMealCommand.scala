@@ -2,7 +2,8 @@ package model.command.meal
 
 import io.swagger.v3.oas.annotations.Hidden
 import io.swagger.v3.oas.annotations.media.Schema
-import model.domain.{Meal, MealType}
+import model.domain.Meal
+import model.domain.enums.MealType
 
 case class EditMealCommand(
                             @Schema(example = "breakfast", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -16,7 +17,7 @@ case class EditMealCommand(
                           ) extends CreateMealCommand(mealType, date, userId) {
 
   override def toMeal: Meal = {
-    Meal(0, userId, MealType.withName(mealType), 0, 0, 0, 0, date.orNull)
+    Meal(mealId, userId, MealType.withName(mealType), 0, 0, 0, 0, date.orNull)
   }
 }
 
