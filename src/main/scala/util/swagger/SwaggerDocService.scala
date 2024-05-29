@@ -8,16 +8,14 @@ import io.swagger.v3.oas.models.security.{SecurityRequirement, SecurityScheme}
 import rest.api.controller.login.{EditUserPasswordController, LoginUserController}
 import rest.api.controller.meal.CreateMealController
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
-import rest.api.controller.profile.GetUserProfileController
 import rest.api.controller.user._
 
 object SwaggerDocService extends SwaggerHttpService {
   private val userControllers = Set(classOf[CreateUserController], classOf[EditUserController], classOf[GetUserController],
-    classOf[GetLoggedUserController], classOf[LoginUserController], classOf[EditUserPasswordController])
-  private val profileControllers = Set(classOf[GetUserProfileController])
+    classOf[GetLoggedUserController], classOf[LoginUserController], classOf[EditUserPasswordController], classOf[GetUserProfileController])
   private val productControllers = Set(classOf[CreateProductController], classOf[ListAllProductsController])
   private val mealControllers = Set(classOf[CreateMealController])
-  override val apiClasses: Set[Class[_]] = userControllers ++ profileControllers ++ productControllers ++ mealControllers
+  override val apiClasses: Set[Class[_]] = userControllers ++ productControllers ++ mealControllers
   override val host = "localhost:8080"
   override val info: Info = Info(version = "1.0")
   private final val bearer = new SecurityScheme().name("Bearer Security").description("Bearer Token based")

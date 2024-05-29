@@ -1,4 +1,4 @@
-package rest.api.controller.profile
+package rest.api.controller.user
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
@@ -23,11 +23,11 @@ object GetUserProfileController {
   def apply(implicit system: ActorSystem[_]): Route = new GetUserProfileController().route()
 }
 
-@Path("/api/v1/user/profile")
+@Path("/api/v1/user/recommendations")
 class GetUserProfileController(implicit system: ActorSystem[_]) extends BaseController {
 
   @GET
-  @Operation(summary = "Get user profile", tags = Array("profile"),
+  @Operation(summary = "Get user profile", tags = Array("user"),
     responses = Array(
       new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[UserProfileDto])))),
       new ApiResponse(responseCode = "401", description = "Unauthorized"),

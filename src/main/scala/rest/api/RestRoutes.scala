@@ -11,7 +11,6 @@ import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithRespo
 import rest.api.controller.login.{EditUserPasswordController, LoginUserController}
 import rest.api.controller.meal.CreateMealController
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
-import rest.api.controller.profile.GetUserProfileController
 import rest.api.controller.user._
 import util.swagger.SwaggerDocService
 
@@ -40,7 +39,7 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
     } ~ path("login") {
       LoginUserController(system) ~
         EditUserPasswordController(system)
-    } ~ path("profile") {
+    } ~ path("recommendations") {
       GetUserProfileController(system)
     } ~ path(Segment) { email =>
       GetUserController(system, email)
