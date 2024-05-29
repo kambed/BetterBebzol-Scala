@@ -22,7 +22,7 @@ object GetUserController {
   def apply(implicit system: ActorSystem[_], email: String): Route = new GetUserController().route()
 }
 
-@Path("/api/v1/user/{email}")
+@Path("/api/v1/user/search/{email}")
 class GetUserController(implicit system: ActorSystem[_], val email: String) extends BaseController {
 
   @GET
