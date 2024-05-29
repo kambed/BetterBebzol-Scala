@@ -13,5 +13,5 @@ case class EditUserPasswordCommand(@Schema(example = "example@wp.pl", requiredMo
   require(password != null, "Password cannot be null")
   require(password.trim.nonEmpty, "Password cannot be empty")
 
-  def toUser: User = User(0, email, password, None, None, None, None, None)
+  def toUser: User = User(0, email, password, None, None, None, None, None, None)
 }

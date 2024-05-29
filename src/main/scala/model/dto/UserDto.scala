@@ -13,4 +13,6 @@ case class UserDto(@Schema(example = "example@wp.pl")
                    @Schema(example = "80")
                    weight: Option[Int],
                    @Schema(name = "how_active", example = "active")
-                   howActive: Option[String])
+                   howActive: Option[String],
+                   @Schema(example = "lose_weight")
+                   goal: Option[String])
