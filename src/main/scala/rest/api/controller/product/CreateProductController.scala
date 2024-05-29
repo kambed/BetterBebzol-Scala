@@ -9,8 +9,8 @@ import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{POST, Path}
-import model.command.CreateProductCommand
 import model.command.abstracts.Command
+import model.command.product.CreateProductCommand
 import model.domain.Product
 import model.dto.ProductDto
 import rest.api.controller.BaseController

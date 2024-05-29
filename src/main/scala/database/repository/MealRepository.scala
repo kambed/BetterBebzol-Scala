@@ -4,9 +4,9 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.MealTable
-import model.command.CreateMealCommand
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.ExceptionWithResponseCode400
+import model.command.meal.CreateMealCommand
 import model.domain.Meal
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
