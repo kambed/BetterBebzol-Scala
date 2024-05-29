@@ -6,7 +6,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{ExceptionHandler, RejectionHandler, Route}
 import model.command.abstracts.Command
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode401, ExceptionWithResponseCode403, ExceptionWithResponseCode404}
-import rest.api.controller.meal.CreateMealController
+import rest.api.controller.meal.{CreateMealController, EditMealController}
 import rest.api.controller.product.{CreateProductController, ListAllProductsController}
 import rest.api.controller.user._
 import util.swagger.SwaggerDocService
@@ -37,10 +37,12 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
   }
 
   private lazy val mealRoutes: Route = path("meal") {
-//    pathEnd {
-//      CreateMealController(system)
-//    }
-    CreateMealController(system)
+    pathEnd {
+      CreateMealController(system)
+    } ~
+      path(LongNumber) { mealId =>
+        EditMealController(system, mealId)
+      }
   }
 
   private lazy val productRoutes: Route = path("product") {
