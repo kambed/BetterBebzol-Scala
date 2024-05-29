@@ -10,11 +10,10 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{POST, Path}
 import model.command.abstracts.{Command, ReturnCommand}
-import model.command.{CreateMealCommand, CreateUserCommand}
+import model.command.meal.CreateMealCommand
 import model.domain.Meal
 import model.dto.MealDto
-import rest.api.controller.BaseController
-import util.jwt.TokenAuthorization
+import rest.api.controller.BaseAuthenticatedController
 import util.{ActorType, Actors}
 
 import scala.concurrent.Future
@@ -24,7 +23,7 @@ object CreateMealController {
 }
 
 @Path("/api/v1/meal")
-class CreateMealController(implicit system: ActorSystem[_]) extends BaseController {
+class CreateMealController(implicit system: ActorSystem[_]) extends BaseAuthenticatedController {
 
   @POST
   @Operation(summary = "Create meal", tags = Array("meal"),
@@ -36,14 +35,10 @@ class CreateMealController(implicit system: ActorSystem[_]) extends BaseControll
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
   def route(): Route = post {
-    TokenAuthorization.authenticated { claim =>
-      val userId: Option[Any] = claim.get("id")
-      if (userId.isEmpty) {
-        return completeWith401()
-      }
+    authenticatedRoute { userId =>
       entity(as[CreateMealCommand]) { createMealCommand =>
         val result: Future[Command] = Actors.getActorRef(ActorType.MEAL_DATABASE)
-          .ask(ref => Command(CreateMealCommand(createMealCommand.mealType, createMealCommand.date, retrieveUserId(userId)),
+          .ask(ref => Command(CreateMealCommand(createMealCommand.mealType, createMealCommand.date, userId),
             ref))
         onSuccess(result) { result: Command =>
           result.command match {
@@ -56,10 +51,5 @@ class CreateMealController(implicit system: ActorSystem[_]) extends BaseControll
         }
       }
     }
-  }
-
-  private def retrieveUserId(userId: Option[Any]): Long = {
-    val javaInteger: String = userId.get.toString
-    javaInteger.toLong
   }
 }
