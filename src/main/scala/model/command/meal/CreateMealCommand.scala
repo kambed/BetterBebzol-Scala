@@ -9,7 +9,7 @@ import model.domain.{Meal, MealType}
 
 class CreateMealCommand(
                          @Schema(example = "breakfast", requiredMode = Schema.RequiredMode.REQUIRED)
-                         val mealType: Option[String],
+                         val mealType: String,
                          @Schema(example = "01/01/2021", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
                          val date: Option[String],
                          @Hidden
@@ -17,19 +17,21 @@ class CreateMealCommand(
                        ) extends BaseCommand {
 
   private val mealTypeValues: Set[String] = MealType.values.map(_.toString)
-  require(mealType.isEmpty || mealTypeValues.contains(mealType.get), s"Meal type can be one of: $mealTypeValues")
-  private val optionalDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+  require(mealTypeValues.contains(mealType), s"Meal type can be one of: $mealTypeValues")
+  private val optionalDate: String = LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
-  def toMeal: Meal = Meal(0, userId, MealType.withName(mealType.get), 0, 0, 0, 0, date.getOrElse(optionalDate))
+  def toMeal: Meal = {
+    Meal(0, userId, MealType.withName(mealType), 0, 0, 0, 0, date.getOrElse(optionalDate))
+  }
 }
 
 object CreateMealCommand {
   def apply(
-             mealType: Option[String],
+             mealType: String,
              date: Option[String],
              userId: Long
            ): CreateMealCommand = new CreateMealCommand(mealType, date, userId)
 
-  def unapply(cmd: CreateMealCommand): Option[(Option[String], Option[String], Long)] =
+  def unapply(cmd: CreateMealCommand): Option[(String, Option[String], Long)] =
     Some((cmd.mealType, cmd.date, cmd.userId))
 }
