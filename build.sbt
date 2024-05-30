@@ -22,6 +22,7 @@ val MySqlConnectorVersion = "8.0.33"
 val SlickVersion = "3.5.1"
 val ConfigVersion = "0.6.1"
 val ScalaTestVersion = "3.2.18"
+val TestcontainersScalaVersion = "0.41.3"
 libraryDependencies ++= Seq(
   "com.typesafe.scala-logging" %% "scala-logging" % ScalaLoggingVersion,
   "ch.qos.logback" % "logback-classic" % LogbackVersion,
@@ -38,6 +39,10 @@ libraryDependencies ++= Seq(
   "com.github.jwt-scala" %% "jwt-core" % "10.0.1",
   "at.favre.lib" % "bcrypt" % "0.10.2",
   "com.github.kxbmap" %% "configs" % ConfigVersion,
+  "io.github.cdimascio" % "java-dotenv" % "5.2.2",
+  "com.typesafe.akka" %% "akka-testkit" % AkkaVersion % "test",
   "com.typesafe.akka" %% "akka-http-testkit" % AkkaHttpVersion % "test",
-  "org.scalatest" %% "scalatest" % ScalaTestVersion % "test"
+  "org.scalatest" %% "scalatest" % ScalaTestVersion % "test",
+  "com.dimafeng" %% "testcontainers-scala-scalatest" % TestcontainersScalaVersion % "test",
+  "com.dimafeng" %% "testcontainers-scala-mysql" % TestcontainersScalaVersion % "test"
 )
