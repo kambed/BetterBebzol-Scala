@@ -5,10 +5,11 @@ import base.BaseTest
 
 class UserTest extends BaseTest {
 
-  "Test" should "XD" in {
+  "Get user" should "fail with user not found 404" in {
+    val expectedResponse = objectMapper.writeValueAsString(Map("message" -> "User with email test@wp.pl not found"))
     Get("/api/v1/user/test@wp.pl") ~> routes.get ~> check {
       status shouldEqual StatusCodes.NotFound
-      responseAs[String] shouldEqual """{"message":"User with email test@wp.pl not found"}"""
+      responseAs[String] shouldEqual expectedResponse
     }
   }
 }

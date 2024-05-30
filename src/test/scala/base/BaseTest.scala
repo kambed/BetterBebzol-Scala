@@ -5,6 +5,8 @@ import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.testkit.ScalatestRouteTest
 import com.dimafeng.testcontainers.scalatest.TestContainerForAll
 import com.dimafeng.testcontainers.{ContainerDef, JdbcDatabaseContainer, MySQLContainer}
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.typesafe.config.{Config, ConfigFactory}
 import io.github.cdimascio.dotenv.Dotenv
 import model.command.abstracts.Command
@@ -27,6 +29,8 @@ class BaseTest extends AnyFlatSpec with BeforeAndAfterAll with TestContainerForA
       initScriptPath = Some("init.sql")
     )
   )
+  protected val objectMapper = new ObjectMapper()
+  objectMapper.registerModule(DefaultScalaModule)
   protected var container: Option[containers.MySQLContainer[_]] = None
   protected var routes: Option[Route] = None
 
