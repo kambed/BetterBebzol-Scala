@@ -2,20 +2,21 @@ package rest.api.controller
 
 import akka.http.scaladsl.server.{Directives, Route, StandardRoute}
 import akka.util.Timeout
-import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode401, ExceptionWithResponseCode404}
+import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode401, ExceptionWithResponseCode404, ExceptionWithResponseCode422}
 import util.json.JsonSupport
 
 import scala.concurrent.duration._
 
 class BaseController extends Directives with JsonSupport {
 
-  implicit val timeout: Timeout = Timeout(5.seconds)
+  implicit val timeout: Timeout = Timeout(50.seconds)
 
   def completeNegative(value: Any): Route = {
     value match {
       case e400: ExceptionWithResponseCode400 => completeWith400(e400.getMessage)
       case e401: ExceptionWithResponseCode401 => completeWith401(e401.getMessage)
       case e404: ExceptionWithResponseCode404 => completeWith404(e404.getMessage)
+      case e422: ExceptionWithResponseCode422 => completeWith422(e422.getMessage)
       case e: Exception => completeWith500(s"${e.getClass.getName}: ${e.getMessage}")
       case _ => completeWith500()
     }
@@ -27,6 +28,10 @@ class BaseController extends Directives with JsonSupport {
 
   protected def completeWith401(error: String): Route = {
     complete(401, Map("message" -> error))
+  }
+
+  protected def completeWith422(error: String): Route = {
+    complete(422, Map("message" -> error))
   }
 
   protected def completeWith404(error: String): Route = {

@@ -8,9 +8,9 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
-import jakarta.ws.rs.{POST, Path}
+import jakarta.ws.rs.{PUT, Path}
 import model.command.abstracts.{Command, ReturnCommand}
-import model.command.meal.CreateMealCommand
+import model.command.meal.EditMealCommand
 import model.domain.Meal
 import model.dto.MealDto
 import rest.api.controller.BaseAuthenticatedController
@@ -18,32 +18,33 @@ import util.{ActorType, Actors}
 
 import scala.concurrent.Future
 
-object CreateMealController {
-  def apply(implicit system: ActorSystem[_]): Route = new CreateMealController().route()
+object EditMealController {
+  def apply(implicit system: ActorSystem[_], mealId: Long): Route = new EditMealController().route()
 }
 
 @Path("/api/v1/meal")
-class CreateMealController(implicit system: ActorSystem[_]) extends BaseAuthenticatedController {
+class EditMealController(implicit system: ActorSystem[_], mealId: Long) extends BaseAuthenticatedController {
 
-  @POST
-  @Operation(summary = "Create meal", tags = Array("meal"),
+  @PUT
+  @Path("/{mealId}")
+  @Operation(summary = "Edit meal", tags = Array("meal"),
     requestBody = new RequestBody(required = true,
-      content = Array(new Content(schema = new Schema(implementation = classOf[CreateMealCommand])))),
+      content = Array(new Content(schema = new Schema(implementation = classOf[EditMealCommand])))),
     responses = Array(
       new ApiResponse(responseCode = "201", content = Array(new Content(schema = new Schema(implementation = classOf[MealDto])))),
       new ApiResponse(responseCode = "400", description = "Bad request"),
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
-  def route(): Route = post {
+  def route(): Route = put {
     authenticatedRoute { userId =>
-      entity(as[CreateMealCommand]) { createMealCommand =>
+      entity(as[EditMealCommand]) { editMealCommand =>
         val result: Future[Command] = Actors.getActorRef(ActorType.MEAL_DATABASE)
-          .ask(ref => Command(CreateMealCommand(createMealCommand.mealType, createMealCommand.date, userId),
+          .ask(ref => Command(EditMealCommand(editMealCommand.mealType, editMealCommand.date, userId, mealId),
             ref))
         onSuccess(result) { result: Command =>
           result.command match {
             case returnCommand: ReturnCommand => returnCommand.response match {
-              case meal: Meal => complete(StatusCodes.Created, meal.toMealDto)
+              case meal: Meal => complete(StatusCodes.Accepted, meal.toMealDto)
               case other => completeNegative(other)
             }
             case other => completeNegative(other)

@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.ProductTable
 import model.command.abstracts.{Command, ReturnCommand}
-import model.command.{CreateProductCommand, ListAllProductsCommand}
+import model.command.product.{CreateProductCommand, ListAllProductsCommand}
 import model.domain.Product
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery

@@ -8,8 +8,8 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{GET, Path}
-import model.command.ListAllProductsCommand
 import model.command.abstracts.Command
+import model.command.product.ListAllProductsCommand
 import model.domain.Product
 import model.dto.ProductListDto
 import rest.api.controller.BaseController
