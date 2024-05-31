@@ -70,7 +70,6 @@ private class MealRepository(context: ActorContext[Command]) extends AbstractBeh
           case exception: SQLIntegrityConstraintViolationException =>
             originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400(exception.getMessage)))
           case _ => originalMsg.replyTo ! Command(ReturnCommand(exception))
-
       }
     }
   }

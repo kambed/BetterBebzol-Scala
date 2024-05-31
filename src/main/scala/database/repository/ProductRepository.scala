@@ -3,9 +3,10 @@ package database.repository
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
-import database.table.ProductTable
+import database.table.{MealProductTable, MealTable, ProductTable}
 import model.command.abstracts.{Command, ReturnCommand}
-import model.command.product.{CreateProductCommand, ListAllProductsCommand}
+import model.command.exception.ExceptionWithResponseCode400
+import model.command.product.CreateProductCommand
 import model.domain.Product
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
@@ -18,24 +19,39 @@ object ProductRepository {
 }
 
 private class ProductRepository(context: ActorContext[Command]) extends AbstractBehavior[Command](context) {
-  lazy val table = TableQuery[ProductTable]
+
+  lazy val mealTable = TableQuery[MealTable]
+  lazy val productTable = TableQuery[ProductTable]
+  lazy val mealProductTable = TableQuery[MealProductTable]
 
   override def onMessage(msg: Command): Behavior[Command] = {
     context.log.info(s"Received message: $msg")
     msg.command match {
-      case createProductCommand: CreateProductCommand =>
-        insertProduct(createProductCommand.toProduct).onComplete(product => msg.replyTo ! Command(ReturnCommand(product.get)))
-      case _: ListAllProductsCommand =>
-        getAllProducts.onComplete(products => msg.replyTo ! Command(ReturnCommand(products.get)))
+      case createProductCommand: CreateProductCommand => handleCreateProductCommand(createProductCommand, msg)
+      case _ => msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400("Invalid command")))
     }
     this
   }
 
+  //=====COMMAND HANDLERS===========================================================
+
+  private def handleCreateProductCommand(command: CreateProductCommand, originalMsg: Command): Unit = {
+    insertProduct(command.toProduct).onComplete {
+      case scala.util.Success(product) =>
+        val response = Command(ReturnCommand(product))
+        response.addAllDelayedRequests(originalMsg.delayedRequests)
+        originalMsg.replyTo ! response
+      case scala.util.Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+    }
+  }
+
+  //=====DATABASE METHODS===========================================================
+
   private def getAllProducts: Future[Seq[Product]] = {
-    MySQLConnection.db.run(table.result)
+    MySQLConnection.db.run(productTable.result)
   }
 
   private def insertProduct(product: Product): Future[Product] = {
-    MySQLConnection.db.run((table returning table.map(_.productId)) += product).map(id => product.copy(productId = id))
+    MySQLConnection.db.run((productTable returning productTable.map(_.productId) into ((product, productId) => product.copy(productId = productId))) += product)
   }
 }
