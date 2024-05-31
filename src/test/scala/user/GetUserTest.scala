@@ -6,14 +6,6 @@ import model.dto.UserDto
 
 class GetUserTest extends BaseTest {
 
-  "Get user by email" should "fail with user not found 404" in {
-    val expectedResponse = Map("message" -> "User with email test@gmail.com not found")
-    Get("/api/v1/user/test@gmail.com") ~> routes.get ~> check {
-      status shouldEqual StatusCodes.NotFound
-      responseAs[Map[String, String]] shouldEqual expectedResponse
-    }
-  }
-
   "Get user by email" should "succeed with user found 200" in {
     val createUserCommand = objectMapper.writeValueAsString(Map(
       "email" -> "test@gmail.com",
@@ -36,4 +28,11 @@ class GetUserTest extends BaseTest {
     }
   }
 
+  "Try to get user by email" should "fail with user not found 404" in {
+    val expectedResponse = Map("message" -> "User with email test2@gmail.com not found")
+    Get("/api/v1/user/test2@gmail.com") ~> routes.get ~> check {
+      status shouldEqual StatusCodes.NotFound
+      responseAs[Map[String, String]] shouldEqual expectedResponse
+    }
+  }
 }
