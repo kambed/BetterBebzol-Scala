@@ -168,7 +168,7 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
 
   private def handleDeleteProductByIdCommand(command: DeleteProductByIdCommand, originalMsg: Command): Unit = {
     getMealProductByProductId(command.productId).onComplete {
-      case Success(Some(mealProduct)) => {
+      case Success(Some(mealProduct)) =>
         checkIfUserIsOwnerOfMeal(command.userId, mealProduct.mealId).onComplete {
           case Success(isOwner) =>
             if (!isOwner) {
@@ -176,39 +176,32 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
               return
             }
             getMealById(mealProduct.mealId).onComplete {
-              case Success(Some(meal)) => {
+              case Success(Some(meal)) =>
                 getProductById(command.productId).onComplete {
-                  case Success(Some(product)) => {
+                  case Success(Some(product)) =>
                     val remMeal = removeFromMealProduct(meal, product, mealProduct.quantity)
                     updateMeal(remMeal).onComplete {
-                      case Success(Some(_)) => {
+                      case Success(Some(_)) =>
                         deleteMealProductByProductId(command.productId).onComplete {
-                          case Success(_) => {
+                          case Success(_) =>
                             deleteProductById(command.productId).onComplete {
-                              case Success(_) => {
+                              case Success(_) =>
                                 val response = Command(ReturnCommand(product))
                                 response.addAllDelayedRequests(originalMsg.delayedRequests)
                                 originalMsg.replyTo ! response
-                              }
                               case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
                             }
-                          }
                           case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
                         }
-                      }
                       case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
                     }
-                  }
                   case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
                 }
-              }
               case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
             }
-
           case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
         }
-      }
-        case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+      case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
     }
   }
 
