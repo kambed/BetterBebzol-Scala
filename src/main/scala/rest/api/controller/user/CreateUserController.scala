@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{POST, Path}
-import model.command.CreateUserCommand
+import model.command.user.CreateUserCommand
 import model.command.abstracts.{Command, ReturnCommand}
 import model.domain.User
 import model.dto.UserDto

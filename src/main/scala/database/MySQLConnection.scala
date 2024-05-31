@@ -3,5 +3,5 @@ package database
 import slick.jdbc.MySQLProfile.api._
 
 object MySQLConnection {
-  val db = Database.forConfig("mysql")
+  var db = Database.forConfig("mysql")
 }

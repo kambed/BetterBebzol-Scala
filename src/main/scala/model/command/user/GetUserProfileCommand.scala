@@ -1,4 +1,4 @@
-package model.command
+package model.command.user
 
 import model.command.abstracts.BaseCommand
 

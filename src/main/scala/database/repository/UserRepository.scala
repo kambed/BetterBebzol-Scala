@@ -6,7 +6,7 @@ import database.MySQLConnection
 import database.table.UserTable
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode404}
-import model.command.{CreateUserCommand, EditUserCommand, EditUserPasswordCommand, GetUserCommand}
+import model.command.user.{CreateUserCommand, EditUserCommand, EditUserPasswordCommand, GetUserCommand}
 import model.domain.User
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery

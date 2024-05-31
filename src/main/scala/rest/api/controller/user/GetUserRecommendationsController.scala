@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{GET, Path}
-import model.command.GetUserProfileCommand
+import model.command.user.GetUserProfileCommand
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.ExceptionWithResponseCode401
 import model.domain.UserProfile
@@ -31,7 +31,6 @@ class GetUserRecommendationsController(implicit system: ActorSystem[_]) extends 
     responses = Array(
       new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[UserProfileDto])))),
       new ApiResponse(responseCode = "401", description = "Unauthorized"),
-      new ApiResponse(responseCode = "403", description = "Forbidden"),
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
   def route(): Route = get {

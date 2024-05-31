@@ -8,6 +8,7 @@ import com.dimafeng.testcontainers.{ContainerDef, JdbcDatabaseContainer, MySQLCo
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.typesafe.config.{Config, ConfigFactory}
+import database.MySQLConnection
 import io.github.cdimascio.dotenv.Dotenv
 import model.command.abstracts.Command
 import org.scalatest.BeforeAndAfterAll
@@ -16,9 +17,10 @@ import org.scalatest.matchers.should.Matchers
 import org.testcontainers.containers
 import org.testcontainers.utility.DockerImageName
 import rest.api.RestRoutes
+import slick.jdbc.MySQLProfile.api._
 import util.Supervisor
 
-class BaseTest extends AnyFlatSpec with BeforeAndAfterAll with TestContainerForAll with ScalatestRouteTest with Matchers {
+class BaseTest extends AnyFlatSpec with BeforeAndAfterAll with TestContainerForAll with ScalatestRouteTest with Matchers with JsonTestSupport {
 
   override val containerDef: ContainerDef = MySQLContainer.Def(
     dockerImageName = DockerImageName.parse("mysql:5.7"),
@@ -45,7 +47,13 @@ class BaseTest extends AnyFlatSpec with BeforeAndAfterAll with TestContainerForA
     System.setProperty("MYSQL_PORT", container.get.getMappedPort(3306).toString)
     ConfigFactory.invalidateCaches()
     val config: Config = ConfigFactory.load.resolve
+    MySQLConnection.db = Database.forConfig("mysql", config)
     implicit val testSystem: ActorSystem[Command] = ActorSystem[Command](Supervisor(), "system", config)
     routes = Some(new RestRoutes().allRoutes)
+  }
+
+  override protected def afterAll(): Unit = {
+    super.afterAll()
+    container.get.stop()
   }
 }

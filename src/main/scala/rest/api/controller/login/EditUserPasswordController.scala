@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.core.MediaType
 import jakarta.ws.rs.{Consumes, PUT, Path, Produces}
-import model.command.EditUserPasswordCommand
+import model.command.user.EditUserPasswordCommand
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode401, ExceptionWithResponseCode403}
 import rest.api.controller.BaseController

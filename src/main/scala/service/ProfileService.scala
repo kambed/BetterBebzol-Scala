@@ -4,7 +4,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.ExceptionWithResponseCode400
-import model.command.{GetUserCommand, GetUserProfileCommand}
+import model.command.user.{GetUserCommand, GetUserProfileCommand}
 import model.domain.enums.{UserActivity, UserGoal, UserSex}
 import model.domain.{User, UserProfile}
 import util.{ActorType, Actors}
@@ -46,7 +46,8 @@ private class ProfileService(context: ActorContext[Command]) extends AbstractBeh
   private def handleReturnGetUserProfileCommand(headDelayedRequest: Command, returnCommand: ReturnCommand): Unit = {
     val user = returnCommand.response.asInstanceOf[User]
     if (user.sex.isEmpty || user.age.isEmpty || user.height.isEmpty || user.weight.isEmpty || user.howActive.isEmpty || user.howActive.isEmpty) {
-      throw ExceptionWithResponseCode400("User profile is incomplete, recommendations cannot be calculated")
+      headDelayedRequest.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400("User profile is incomplete, recommendations cannot be calculated")))
+      return
     }
     val userGoal = user.goal.getOrElse(UserGoal.MAINTAIN_WEIGHT)
     val recommendedCalories = calculateRecommendedCalories(calculateBMR(user), user.howActive.get, userGoal)

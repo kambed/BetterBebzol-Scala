@@ -1,4 +1,4 @@
-package model.command
+package model.command.user
 
 import io.swagger.v3.oas.annotations.media.Schema
 import model.command.abstracts.BaseCommand

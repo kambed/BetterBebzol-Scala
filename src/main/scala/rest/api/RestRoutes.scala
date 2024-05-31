@@ -71,7 +71,7 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
       .mapRejectionResponse {
         case res@HttpResponse(_, _, ent: HttpEntity.Strict, _) =>
           val message = ent.data.utf8String.replaceAll("\"", "\'").replaceAll("\n", " ").replaceAll(" {2}", " ")
-          res.withEntity(HttpEntity(ContentTypes.`application/json`, s"""{"rejection": "$message"}"""))
+          res.withEntity(HttpEntity(ContentTypes.`application/json`, s"""{"message": "$message"}"""))
         case x => x
       }
 
@@ -79,21 +79,21 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
     ExceptionHandler {
       case e400: ExceptionWithResponseCode400 =>
         val message = e400.getMessage.replaceAll("\"", "\'").replaceAll("\n", " ").replaceAll(" {2}", " ")
-        complete(HttpResponse(400, entity = HttpEntity(ContentTypes.`application/json`, s"""{"Bad request": "$message"}""")))
+        complete(HttpResponse(400, entity = HttpEntity(ContentTypes.`application/json`, s"""{"message": "Bad request: $message"}""")))
       case e401: ExceptionWithResponseCode401 =>
         val message = e401.getMessage.replaceAll("\"", "\'").replaceAll("\n", " ").replaceAll(" {2}", " ")
-        complete(HttpResponse(401, entity = HttpEntity(ContentTypes.`application/json`, s"""{"Unauthorized": "$message"}""")))
+        complete(HttpResponse(401, entity = HttpEntity(ContentTypes.`application/json`, s"""{"message": "Unauthorized: $message"}""")))
       case e403: ExceptionWithResponseCode403 =>
         val message = e403.getMessage.replaceAll("\"", "\'").replaceAll("\n", " ").replaceAll(" {2}", " ")
-        complete(HttpResponse(403, entity = HttpEntity(ContentTypes.`application/json`, s"""{"Forbidden": "$message"}""")))
+        complete(HttpResponse(403, entity = HttpEntity(ContentTypes.`application/json`, s"""{"message": "Forbidden: $message"}""")))
       case e404: ExceptionWithResponseCode404 =>
         val message = e404.getMessage.replaceAll("\"", "\'").replaceAll("\n", " ").replaceAll(" {2}", " ")
-        complete(HttpResponse(404, entity = HttpEntity(ContentTypes.`application/json`, s"""{"Not found": "$message"}""")))
+        complete(HttpResponse(404, entity = HttpEntity(ContentTypes.`application/json`, s"""{"message": "Not found: $message"}""")))
       case e: Exception =>
         extractUri { uri =>
           system.log.error(s"Request to $uri could not be handled normally", e)
           val message = e.getMessage.replaceAll("\"", "\'").replaceAll("\n", " ").replaceAll(" {2}", " ")
-          complete(HttpResponse(500, entity = HttpEntity(ContentTypes.`application/json`, s"""{"Internal server error": "$message"}""")))
+          complete(HttpResponse(500, entity = HttpEntity(ContentTypes.`application/json`, s"""{"message": "Internal server error: $message"}""")))
         }
     }
 }

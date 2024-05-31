@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{PUT, Path}
-import model.command.EditUserCommand
+import model.command.user.EditUserCommand
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode401, ExceptionWithResponseCode403}
 import model.domain.User
