@@ -31,7 +31,6 @@ class GetLoggedUserController(implicit system: ActorSystem[_]) extends BaseContr
     responses = Array(
       new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[UserDto])))),
       new ApiResponse(responseCode = "401", description = "Unauthorized"),
-      new ApiResponse(responseCode = "403", description = "Forbidden"),
       new ApiResponse(responseCode = "500", description = "Internal server error"))
   )
   def route(): Route = get {
