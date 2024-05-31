@@ -7,13 +7,13 @@ case class MealDto(@Schema(name = "meal_id", example = "1")
                    @Schema(example = "breakfast")
                    mealType: String,
                    @Schema(example = "500.0")
-                   calories: Float,
+                   calories: Double,
                    @Schema(example = "20.0")
-                   proteins: Float,
+                   proteins: Double,
                    @Schema(example = "50.0")
-                   carbohydrates: Float,
+                   carbohydrates: Double,
                    @Schema(example = "10.0")
-                   fat: Float,
+                   fat: Double,
                    @Schema(example = "05/12/2024")
                    date: String
                   )
