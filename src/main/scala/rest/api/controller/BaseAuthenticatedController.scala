@@ -16,7 +16,7 @@ abstract class BaseAuthenticatedController extends BaseController {
     }
   }
 
-  protected def retrieveUserId(userId: Option[Any]): Long = {
+  private def retrieveUserId(userId: Option[Any]): Long = {
     val javaInteger: String = userId.get.toString
     javaInteger.toLong
   }

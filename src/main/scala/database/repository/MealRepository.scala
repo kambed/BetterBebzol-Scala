@@ -21,7 +21,7 @@ object MealRepository {
 }
 
 private class MealRepository(context: ActorContext[Command]) extends AbstractBehavior[Command](context) {
-  
+
   lazy val table = TableQuery[MealTable]
 
   override def onMessage(msg: Command): Behavior[Command] = {
