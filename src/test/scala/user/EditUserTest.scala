@@ -126,7 +126,7 @@ class EditUserTest extends BaseTest {
     }
 
     val editUserCommand = objectMapper.writeValueAsString(Map("sex" -> "male"))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserCommand`, problem: requirement failed: Email cannot be null"
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserCommand`, problem: requirement failed: Email cannot be null"
     Put("/api/v1/user", editUserCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
       responseAs[Map[String, String]].keySet should contain("message")
@@ -155,7 +155,7 @@ class EditUserTest extends BaseTest {
     }
 
     val editUserCommand = objectMapper.writeValueAsString(Map("email" -> "", "sex" -> "male"))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserCommand`, problem: requirement failed: Email cannot be empty"
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserCommand`, problem: requirement failed: Email cannot be empty"
     Put("/api/v1/user", editUserCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
       responseAs[Map[String, String]].keySet should contain("message")
@@ -184,7 +184,7 @@ class EditUserTest extends BaseTest {
     }
 
     val editUserCommand = objectMapper.writeValueAsString(Map("email" -> "test7@gmail.com", "sex" -> "invalid"))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserCommand`, problem: requirement failed: Sex can be one of: " + UserSex.values.map(v => v.toString)
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserCommand`, problem: requirement failed: Sex can be one of: " + UserSex.values.map(v => v.toString)
     Put("/api/v1/user", editUserCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
       responseAs[Map[String, String]].keySet should contain("message")
@@ -213,7 +213,7 @@ class EditUserTest extends BaseTest {
     }
 
     var editUserCommand = objectMapper.writeValueAsString(Map("email" -> "test8@gmail.com", "age" -> -1))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserCommand`, problem: requirement failed: Age has to be within a [0, 150] range"
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserCommand`, problem: requirement failed: Age has to be within a [0, 150] range"
     Put("/api/v1/user", editUserCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
       responseAs[Map[String, String]].keySet should contain("message")
@@ -249,7 +249,7 @@ class EditUserTest extends BaseTest {
     }
 
     var editUserCommand = objectMapper.writeValueAsString(Map("email" -> "test9@gmail.com", "height" -> -1))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserCommand`, problem: requirement failed: Height has to be within a [0, 300] range"
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserCommand`, problem: requirement failed: Height has to be within a [0, 300] range"
     Put("/api/v1/user", editUserCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
       responseAs[Map[String, String]].keySet should contain("message")
@@ -285,7 +285,7 @@ class EditUserTest extends BaseTest {
     }
 
     var editUserCommand = objectMapper.writeValueAsString(Map("email" -> "test10@gmail.com", "weight" -> -1))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserCommand`, problem: requirement failed: Weight has to be within a [0, 500] range"
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserCommand`, problem: requirement failed: Weight has to be within a [0, 500] range"
     Put("/api/v1/user", editUserCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
       responseAs[Map[String, String]].keySet should contain("message")
@@ -321,7 +321,7 @@ class EditUserTest extends BaseTest {
     }
 
     val editUserCommand = objectMapper.writeValueAsString(Map("email" -> "test11@gmail.com", "how_active" -> "invalid"))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserCommand`, problem: requirement failed: How active can be one of: " + UserActivity.values.map(v => v.toString)
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserCommand`, problem: requirement failed: How active can be one of: " + UserActivity.values.map(v => v.toString)
     Put("/api/v1/user", editUserCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
       responseAs[Map[String, String]].keySet should contain("message")
@@ -350,7 +350,7 @@ class EditUserTest extends BaseTest {
     }
 
     val editUserCommand = objectMapper.writeValueAsString(Map("email" -> "test12@gmail.com", "goal" -> "invalid"))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserCommand`, problem: requirement failed: Goal can be one of: " + UserGoal.values.map(v => v.toString)
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserCommand`, problem: requirement failed: Goal can be one of: " + UserGoal.values.map(v => v.toString)
     Put("/api/v1/user", editUserCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
       responseAs[Map[String, String]].keySet should contain("message")

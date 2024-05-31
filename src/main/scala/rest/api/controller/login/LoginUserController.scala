@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.ws.rs.{POST, Path}
-import model.command.LoginUserCommand
+import model.command.user.LoginUserCommand
 import model.command.abstracts.{Command, ReturnCommand}
 import model.dto.UserTokenDto
 import rest.api.controller.BaseController

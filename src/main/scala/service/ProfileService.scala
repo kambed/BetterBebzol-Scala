@@ -4,7 +4,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.ExceptionWithResponseCode400
-import model.command.{GetUserCommand, GetUserProfileCommand}
+import model.command.user.{GetUserCommand, GetUserProfileCommand}
 import model.domain.enums.{UserActivity, UserGoal, UserSex}
 import model.domain.{User, UserProfile}
 import util.{ActorType, Actors}

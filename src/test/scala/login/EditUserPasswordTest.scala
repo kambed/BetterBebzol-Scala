@@ -96,7 +96,7 @@ class EditUserPasswordTest extends BaseTest {
     }
 
     val editUserPasswordCommand = objectMapper.writeValueAsString(Map("email" -> "test5@gmail.com"))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserPasswordCommand`, problem: requirement failed: Password cannot be null"
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserPasswordCommand`, problem: requirement failed: Password cannot be null"
 
     Put("/api/v1/user/login", editUserPasswordCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
@@ -122,7 +122,7 @@ class EditUserPasswordTest extends BaseTest {
     }
 
     val editUserPasswordCommand = objectMapper.writeValueAsString(Map("email" -> "test6@gmail.com", "password" -> ""))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserPasswordCommand`, problem: requirement failed: Password cannot be empty"
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserPasswordCommand`, problem: requirement failed: Password cannot be empty"
 
     Put("/api/v1/user/login", editUserPasswordCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
@@ -147,7 +147,7 @@ class EditUserPasswordTest extends BaseTest {
     }
 
     val editUserPasswordCommand = objectMapper.writeValueAsString(Map("password" -> "password2"))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserPasswordCommand`, problem: requirement failed: Email cannot be null"
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserPasswordCommand`, problem: requirement failed: Email cannot be null"
 
     Put("/api/v1/user/login", editUserPasswordCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
@@ -173,7 +173,7 @@ class EditUserPasswordTest extends BaseTest {
     }
 
     val editUserPasswordCommand = objectMapper.writeValueAsString(Map("email" -> "", "password" -> "password2"))
-    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.EditUserPasswordCommand`, problem: requirement failed: Email cannot be empty"
+    val expectedError = "The request content was malformed: Cannot construct instance of `model.command.user.EditUserPasswordCommand`, problem: requirement failed: Email cannot be empty"
 
     Put("/api/v1/user/login", editUserPasswordCommand) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest

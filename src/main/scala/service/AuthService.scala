@@ -4,7 +4,7 @@ import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.ExceptionWithResponseCode401
-import model.command.{CreateUserCommand, EditUserPasswordCommand, GetUserCommand, LoginUserCommand}
+import model.command.user.{CreateUserCommand, EditUserPasswordCommand, GetUserCommand, LoginUserCommand}
 import model.domain.User
 import util.hash.BCryptHelper
 import util.jwt.TokenAuthorization
