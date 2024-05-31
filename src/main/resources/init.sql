@@ -34,7 +34,7 @@ CREATE TABLE Product
     calories      FLOAT NOT NULL,
     protein       FLOAT,
     fat           FLOAT,
-    carbohydrates FLOAT,
+    carbohydrates FLOAT
 );
 
 -- MealProduct table
