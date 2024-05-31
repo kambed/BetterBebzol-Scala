@@ -6,7 +6,7 @@ import database.MySQLConnection
 import database.table.{MealProductTable, MealTable, ProductTable}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode403}
-import model.command.product.CreateProductCommand
+import model.command.product.{CreateProductCommand, EditProductCommand, GetProductByIdCommand}
 import model.domain.{Meal, MealProduct, Product}
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
@@ -29,6 +29,8 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     context.log.info(s"Received message: $msg")
     msg.command match {
       case createProductCommand: CreateProductCommand => handleCreateProductCommand(createProductCommand, msg)
+      case editProductCommand: EditProductCommand => handleEditProductCommand(editProductCommand, msg)
+      case getProductByIdCommand: GetProductByIdCommand => handleGetProductCommand(getProductByIdCommand, msg)
       case _ => msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400("Invalid command")))
     }
     this
@@ -68,6 +70,75 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     }
   }
 
+  private def handleEditProductCommand(command: EditProductCommand, originalMsg: Command): Unit = {
+    getMealProductByProductId(command.productId).onComplete {
+      case Success(Some(mealProduct)) =>
+        checkIfUserIsOwnerOfMeal(command.userId, mealProduct.mealId).onComplete {
+          case Success(isOwner) =>
+            if (!isOwner) {
+              originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"You are not the owner of meal with product id ${command.productId}")))
+              return
+            }
+            getProductById(command.productId).onComplete {
+              case Success(Some(product)) =>
+                val updatedProduct = command.toProduct
+                updateProduct(updatedProduct).onComplete {
+                  case Success(Some(updatedProduct)) => {
+                    getMealById(mealProduct.mealId).onComplete {
+                      case Success(Some(meal)) => {
+                        val remMeal = removeFromMealProduct(meal, product, mealProduct.quantity)
+                        val updatedMeal = updateMealByProduct(remMeal, updatedProduct, command.quantity.getOrElse(1))
+                        updateMeal(updatedMeal).onComplete {
+                          case Success(Some(updatedMeal)) => {
+                            updateMealProduct(updateMealProductQuantity(mealProduct, command.quantity.getOrElse(1))).onComplete {
+                              case Success(Some(_)) => {
+                                val response = Command(ReturnCommand(updatedProduct))
+                                response.addAllDelayedRequests(originalMsg.delayedRequests)
+                                originalMsg.replyTo ! response
+                              }
+                              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+                            }
+                          }
+                          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+                        }
+                      }
+                      case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+                    }
+                  }
+                  case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+                }
+              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+            }
+          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+        }
+      case Success(None) => originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"Product with id ${command.productId} is not in any meal")))
+      case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+    }
+  }
+
+  private def handleGetProductCommand(command: GetProductByIdCommand, originalMsg: Command): Unit = {
+    getMealProductByProductId(command.productId).onComplete {
+      case Success(Some(mealProduct)) =>
+        checkIfUserIsOwnerOfMeal(command.userId, mealProduct.mealId).onComplete {
+          case Success(isOwner) =>
+            if (!isOwner) {
+              originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"You are not the owner of meal with product id ${command.productId}")))
+              return
+            }
+            getProductById(command.productId).onComplete {
+              case Success(Some(product)) =>
+                val response = Command(ReturnCommand(product))
+                response.addAllDelayedRequests(originalMsg.delayedRequests)
+                originalMsg.replyTo ! response
+              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+            }
+          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+        }
+      case Success(None) => originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"Product with id ${command.productId} is not in any meal")))
+      case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+    }
+  }
+
   //=====DATABASE METHODS===========================================================
 
   private def insertProduct(product: Product): Future[Product] = {
@@ -86,8 +157,30 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     }
   }
 
+  private def updateMealProduct(mealProduct: MealProduct): Future[Option[MealProduct]] = {
+    MySQLConnection.db.run(mealProductTable.filter(_.productId === mealProduct.productId).update(mealProduct)).map {
+      case 0 => None
+      case _ => Some(mealProduct)
+    }
+  }
+
+  private def updateProduct(product: Product): Future[Option[Product]] = {
+    MySQLConnection.db.run(productTable.filter(_.productId === product.productId).update(product)).map {
+      case 0 => None
+      case _ => Some(product)
+    }
+  }
+
   private def getMealById(id: Long): Future[Option[Meal]] = {
     MySQLConnection.db.run(mealTable.filter(_.mealId === id).result.headOption)
+  }
+
+  private def getProductById(id: Long): Future[Option[Product]] = {
+    MySQLConnection.db.run(productTable.filter(_.productId === id).result.headOption)
+  }
+
+  private def getMealProductByProductId(productId: Long): Future[Option[MealProduct]] = {
+    MySQLConnection.db.run(mealProductTable.filter(_.productId === productId).result.headOption)
   }
 
   private def getAllProducts: Future[Seq[Product]] = {
@@ -108,6 +201,21 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
       proteins = meal.proteins + (product.proteins.getOrElse(0.0) * quantity),
       fat = meal.fat + (product.fat.getOrElse(0.0) * quantity),
       carbohydrates = meal.carbohydrates + (product.carbohydrates.getOrElse(0.0) * quantity)
+    )
+  }
+
+  private def updateMealProductQuantity(mealProduct: MealProduct, quantity: Int): MealProduct = {
+    mealProduct.copy(
+      quantity = quantity
+    )
+  }
+
+  private def removeFromMealProduct(meal: Meal, product: Product, quantity: Int): Meal = {
+    meal.copy(
+      calories = meal.calories - (product.calories.getOrElse(0.0) * quantity),
+      proteins = meal.proteins - (product.proteins.getOrElse(0.0) * quantity),
+      fat = meal.fat - (product.fat.getOrElse(0.0) * quantity),
+      carbohydrates = meal.carbohydrates - (product.carbohydrates.getOrElse(0.0) * quantity)
     )
   }
 

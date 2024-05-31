@@ -10,7 +10,7 @@ import model.command.abstracts.Command
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode401, ExceptionWithResponseCode403, ExceptionWithResponseCode404}
 import rest.api.controller.login.{EditUserPasswordController, LoginUserController}
 import rest.api.controller.meal.{CreateMealController, EditMealController, GetAllUserMealsController, GetMealByDateController, GetMealByIdController}
-import rest.api.controller.product.{CreateProductController}
+import rest.api.controller.product.{CreateProductController, EditProductController, GetProductByIdController}
 import rest.api.controller.user._
 import util.swagger.SwaggerDocService
 
@@ -64,6 +64,10 @@ class RestRoutes(implicit system: ActorSystem[Command]) {
   private lazy val productRoutes: Route = pathPrefix("product") {
     path(LongNumber) { mealId =>
       CreateProductController(system, mealId)
+    } ~ path(LongNumber) { productId =>
+      EditProductController(system, productId)
+    } ~ path(LongNumber) { productId =>
+      GetProductByIdController(system, productId)
     }
   }
 
