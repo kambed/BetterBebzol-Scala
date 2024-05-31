@@ -6,7 +6,7 @@ import database.MySQLConnection
 import database.table.{MealProductTable, MealTable, ProductTable}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode403}
-import model.command.product.{CreateProductCommand, EditProductCommand, GetMealProductsByIdCommand, GetProductByIdCommand}
+import model.command.product.{CreateProductCommand, DeleteProductByIdCommand, EditProductCommand, GetMealProductsByIdCommand, GetProductByIdCommand}
 import model.domain.{Meal, MealProduct, Product}
 import model.dto.{MealProductDto, ProductQuantityDto}
 import slick.jdbc.MySQLProfile.api._
@@ -33,6 +33,7 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
       case editProductCommand: EditProductCommand => handleEditProductCommand(editProductCommand, msg)
       case getProductByIdCommand: GetProductByIdCommand => handleGetProductCommand(getProductByIdCommand, msg)
       case getMealProductsByIdCommand: GetMealProductsByIdCommand => handleGetMealProductCommand(getMealProductsByIdCommand, msg)
+      case deleteProductByIdCommand: DeleteProductByIdCommand => handleDeleteProductByIdCommand(deleteProductByIdCommand, msg)
       case _ => msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400("Invalid command")))
     }
     this
@@ -165,6 +166,52 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     }
   }
 
+  private def handleDeleteProductByIdCommand(command: DeleteProductByIdCommand, originalMsg: Command): Unit = {
+    getMealProductByProductId(command.productId).onComplete {
+      case Success(Some(mealProduct)) => {
+        checkIfUserIsOwnerOfMeal(command.userId, mealProduct.mealId).onComplete {
+          case Success(isOwner) =>
+            if (!isOwner) {
+              originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"You are not the owner of meal with product id ${command.productId}")))
+              return
+            }
+            getMealById(mealProduct.mealId).onComplete {
+              case Success(Some(meal)) => {
+                getProductById(command.productId).onComplete {
+                  case Success(Some(product)) => {
+                    val remMeal = removeFromMealProduct(meal, product, mealProduct.quantity)
+                    updateMeal(remMeal).onComplete {
+                      case Success(Some(_)) => {
+                        deleteMealProductByProductId(command.productId).onComplete {
+                          case Success(_) => {
+                            deleteProductById(command.productId).onComplete {
+                              case Success(_) => {
+                                val response = Command(ReturnCommand(product))
+                                response.addAllDelayedRequests(originalMsg.delayedRequests)
+                                originalMsg.replyTo ! response
+                              }
+                              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+                            }
+                          }
+                          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+                        }
+                      }
+                      case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+                    }
+                  }
+                  case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+                }
+              }
+              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+            }
+
+          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+        }
+      }
+        case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
+    }
+  }
+
   private def mapProductsWithQuantityToProductDto(products: Seq[Product], mealProducts: Seq[MealProduct]) = {
     val productIdToQuantity: Map[Long, Int] = mealProducts.map(mp => mp.productId -> mp.quantity).toMap
 
@@ -198,6 +245,14 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
       case 0 => None
       case _ => Some(meal)
     }
+  }
+
+  private def deleteProductById(productId: Long): Future[Int] = {
+    MySQLConnection.db.run(productTable.filter(_.productId === productId).delete)
+  }
+
+  private def deleteMealProductByProductId(productId: Long): Future[Int] = {
+    MySQLConnection.db.run(mealProductTable.filter(_.productId === productId).delete)
   }
 
   private def updateMealProduct(mealProduct: MealProduct): Future[Option[MealProduct]] = {
