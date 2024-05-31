@@ -21,6 +21,7 @@ object MealRepository {
 }
 
 private class MealRepository(context: ActorContext[Command]) extends AbstractBehavior[Command](context) {
+  
   lazy val table = TableQuery[MealTable]
 
   override def onMessage(msg: Command): Behavior[Command] = {
@@ -70,7 +71,6 @@ private class MealRepository(context: ActorContext[Command]) extends AbstractBeh
           case exception: SQLIntegrityConstraintViolationException =>
             originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400(exception.getMessage)))
           case _ => originalMsg.replyTo ! Command(ReturnCommand(exception))
-
       }
     }
   }

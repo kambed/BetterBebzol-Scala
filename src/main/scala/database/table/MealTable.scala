@@ -14,13 +14,13 @@ class MealTable(tag: Tag) extends Table[Meal](tag, "Meal") {
 
   def mealType = column[MealType]("meal_type")
 
-  def calories = column[Float]("calories")
+  def calories = column[Double]("calories")
 
-  def protein = column[Float]("protein")
+  def protein = column[Double]("protein")
 
-  def fat = column[Float]("fat")
+  def fat = column[Double]("fat")
 
-  def carbohydrates = column[Float]("carbohydrates")
+  def carbohydrates = column[Double]("carbohydrates")
 
   def date = column[String]("date")
 

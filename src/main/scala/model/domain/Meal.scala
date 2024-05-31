@@ -6,10 +6,10 @@ import model.dto.MealDto
 case class Meal(mealId: Long,
                 userId: Long,
                 mealType: MealType,
-                calories: Float = 0,
-                proteins: Float = 0,
-                carbohydrates: Float = 0,
-                fat: Float = 0,
+                calories: Double = 0,
+                proteins: Double = 0,
+                carbohydrates: Double = 0,
+                fat: Double = 0,
                 date: String
                ) {
   def toMealDto: MealDto = MealDto(mealId,

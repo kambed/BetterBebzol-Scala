@@ -7,13 +7,14 @@ import com.github.swagger.akka.model.Info
 import io.swagger.v3.oas.models.security.{SecurityRequirement, SecurityScheme}
 import rest.api.controller.login.{EditUserPasswordController, LoginUserController}
 import rest.api.controller.meal.{CreateMealController, EditMealController, GetAllUserMealsController, GetMealByDateController, GetMealByIdController}
-import rest.api.controller.product.{CreateProductController, ListAllProductsController}
+import rest.api.controller.product.{CreateProductController, DeleteProductByIdController, EditProductController, GetListOfProductsByMealIdController, GetProductByIdController}
 import rest.api.controller.user._
 
 object SwaggerDocService extends SwaggerHttpService {
   private val userControllers = Set(classOf[CreateUserController], classOf[EditUserController], classOf[GetUserController],
     classOf[GetLoggedUserController], classOf[LoginUserController], classOf[EditUserPasswordController], classOf[GetUserRecommendationsController])
-  private val productControllers = Set(classOf[CreateProductController], classOf[ListAllProductsController])
+  private val productControllers = Set(classOf[CreateProductController], classOf[EditProductController],
+    classOf[GetProductByIdController], classOf[GetListOfProductsByMealIdController], classOf[DeleteProductByIdController])
   private val mealControllers = Set(classOf[CreateMealController], classOf[EditMealController], classOf[GetMealByIdController],
     classOf[GetAllUserMealsController], classOf[GetMealByDateController])
   override val apiClasses: Set[Class[_]] = userControllers ++ productControllers ++ mealControllers
