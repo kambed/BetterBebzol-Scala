@@ -17,8 +17,9 @@ import org.testcontainers.containers
 import org.testcontainers.utility.DockerImageName
 import rest.api.RestRoutes
 import util.Supervisor
+import util.json.JsonSupport
 
-class BaseTest extends AnyFlatSpec with BeforeAndAfterAll with TestContainerForAll with ScalatestRouteTest with Matchers {
+class BaseTest extends AnyFlatSpec with BeforeAndAfterAll with TestContainerForAll with ScalatestRouteTest with Matchers with JsonTestSupport {
 
   override val containerDef: ContainerDef = MySQLContainer.Def(
     dockerImageName = DockerImageName.parse("mysql:5.7"),
