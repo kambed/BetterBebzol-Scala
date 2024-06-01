@@ -30,6 +30,7 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
       case editUserCommand: EditUserCommand => handleEditUserCommand(msg, editUserCommand)
       case editUserPasswordCommand: EditUserPasswordCommand => handleEditUserPasswordCommand(msg, editUserPasswordCommand)
       case getUserCommand: GetUserCommand => handleGetUserCommand(msg, getUserCommand)
+      case _ => msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400("Invalid command")))
     }
     this
   }
@@ -91,17 +92,17 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
     MySQLConnection.db.run(table.filter(_.email === user.email).update(modifiedUser)).map(_ => modifiedUser)
   }
 
-  private def updateUserPassword(email: String, password: String): Future[Unit] = {
-    MySQLConnection.db.run(table.filter(_.email === email).map(_.password).update(password)).flatMap {
-      case 0 => Future.failed(ExceptionWithResponseCode404(s"User with email $email not found"))
-      case _ => Future.successful(())
-    }
-  }
-
   private def getUserByEmail(email: String): Future[User] = {
     MySQLConnection.db.run(table.filter(_.email === email).result.headOption).flatMap {
       case Some(user) => Future.successful(user)
       case None => Future.failed(ExceptionWithResponseCode404(s"User with email $email not found"))
+    }
+  }
+
+  private def updateUserPassword(email: String, password: String): Future[Unit] = {
+    MySQLConnection.db.run(table.filter(_.email === email).map(_.password).update(password)).flatMap {
+      case 0 => Future.failed(ExceptionWithResponseCode404(s"User with email $email not found"))
+      case _ => Future.successful(())
     }
   }
 }
