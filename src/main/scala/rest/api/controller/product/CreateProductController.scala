@@ -4,7 +4,8 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -22,12 +23,13 @@ object CreateProductController {
   def apply(implicit system: ActorSystem[_], mealId: Long): Route = new CreateProductController().route()
 }
 
-@Path("/api/v1/product")
+@Path("/api/v1/product/{mealId}")
 class CreateProductController(implicit system: ActorSystem[_], mealId: Long) extends BaseAuthenticatedController {
 
   @POST
-  @Path("/{mealId}")
   @Operation(summary = "Create a product", tags = Array("product"),
+    parameters = Array(
+      new Parameter(name = "mealId", in = ParameterIn.PATH, required = true, description = "Meal id", content = Array(new Content(schema = new Schema(implementation = classOf[Long]))))),
     requestBody = new RequestBody(required = true,
       content = Array(new Content(schema = new Schema(implementation = classOf[CreateProductCommand])))),
     responses = Array(

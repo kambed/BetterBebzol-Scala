@@ -7,13 +7,13 @@ import model.domain.Product
 
 case class EditProductCommand(@Schema(name = "product_name", example = "Apple", requiredMode = Schema.RequiredMode.REQUIRED)
                               productName: String,
-                              @Schema(example = "52", requiredMode = Schema.RequiredMode.REQUIRED)
+                              @Schema(example = "52.5", requiredMode = Schema.RequiredMode.REQUIRED)
                               calories: Option[Double],
                               @Schema(example = "0.3", requiredMode = Schema.RequiredMode.REQUIRED)
                               protein: Option[Double],
                               @Schema(example = "0.2", requiredMode = Schema.RequiredMode.REQUIRED)
                               fat: Option[Double],
-                              @Schema(example = "14.0", requiredMode = Schema.RequiredMode.REQUIRED)
+                              @Schema(example = "14.1", requiredMode = Schema.RequiredMode.REQUIRED)
                               carbohydrates: Option[Double],
                               @Schema(example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
                               quantity: Option[Int],
