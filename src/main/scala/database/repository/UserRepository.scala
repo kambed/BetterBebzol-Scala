@@ -41,23 +41,17 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
         val response = Command(ReturnCommand(user))
         response.addAllDelayedRequests(msg.delayedRequests)
         msg.replyTo ! response
-      case Failure(exception) =>
-        exception match {
-          case exception: SQLIntegrityConstraintViolationException =>
-            msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode400(exception.getMessage)))
-          case _ => msg.replyTo ! Command(ReturnCommand(exception))
-        }
+      case Failure(exception) => msg.replyTo ! Command(ReturnCommand(exception))
     }
   }
 
   private def handleEditUserCommand(msg: Command, editUserCommand: EditUserCommand): Unit = {
-    updateUser(editUserCommand.toUser).onComplete {
-      case Success(user) =>
-        if (user.isEmpty) {
-          msg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode404(s"User with email ${editUserCommand.email} not found")))
-          return
-        }
-        val response = Command(ReturnCommand(user.get))
+    (for {
+      user <- getUserByEmail(editUserCommand.email)
+      updatedUser <- updateUser(user, editUserCommand.toUser)
+    } yield updatedUser).onComplete {
+      case Success(updatedUser) =>
+        val response = Command(ReturnCommand(updatedUser))
         response.addAllDelayedRequests(msg.delayedRequests)
         msg.replyTo ! response
       case Failure(exception) => msg.replyTo ! Command(ReturnCommand(exception))
@@ -74,12 +68,7 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
   private def handleGetUserCommand(msg: Command, getUserCommand: GetUserCommand): Unit = {
     getUserByEmail(getUserCommand.email).onComplete {
       case Success(user) =>
-        if (user.isEmpty) {
-          msg.getFirstDelayedRequestAndRemoveAll.replyTo !
-            Command(ReturnCommand(ExceptionWithResponseCode404(s"User with email ${getUserCommand.email} not found")))
-          return
-        }
-        val response = Command(ReturnCommand(user.get))
+        val response = Command(ReturnCommand(user))
         response.addAllDelayedRequests(msg.delayedRequests)
         msg.replyTo ! response
       case Failure(exception) => msg.getFirstDelayedRequestAndRemoveAll.replyTo ! Command(ReturnCommand(exception))
@@ -88,26 +77,31 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
 
   //=====DATABASE METHODS===========================================================
   private def insertUser(user: User): Future[User] = {
-    MySQLConnection.db.run((table returning table.map(_.userId)) += user).map(id => user.copy(userId = id))
+    MySQLConnection.db.run((table returning table.map(_.userId)) += user).transform(
+      id => user.copy(userId = id),
+      exception => exception match {
+        case exception: SQLIntegrityConstraintViolationException => ExceptionWithResponseCode400(exception.getMessage)
+        case _ => exception
+      }
+    )
   }
 
-  private def updateUser(user: User): Future[Option[User]] = {
-    getUserByEmail(user.email).flatMap {
-      case Some(dbUser) =>
-        val modifiedUser = user.copy(userId = dbUser.userId, password = dbUser.password)
-        MySQLConnection.db.run(table.filter(_.email === user.email).update(modifiedUser)).map(_ => Some(modifiedUser))
-      case None => Future.successful(None)
-    }
+  private def updateUser(oldUser: User, user: User): Future[User] = {
+    val modifiedUser = user.copy(userId = oldUser.userId, password = oldUser.password)
+    MySQLConnection.db.run(table.filter(_.email === user.email).update(modifiedUser)).map(_ => modifiedUser)
   }
 
-  private def updateUserPassword(email: String, password: String) = {
+  private def updateUserPassword(email: String, password: String): Future[Unit] = {
     MySQLConnection.db.run(table.filter(_.email === email).map(_.password).update(password)).flatMap {
-      case 0 => Future.failed(new Exception("User not found"))
+      case 0 => Future.failed(ExceptionWithResponseCode404(s"User with email $email not found"))
       case _ => Future.successful(())
     }
   }
 
-  private def getUserByEmail(email: String): Future[Option[User]] = {
-    MySQLConnection.db.run(table.filter(_.email === email).result.headOption)
+  private def getUserByEmail(email: String): Future[User] = {
+    MySQLConnection.db.run(table.filter(_.email === email).result.headOption).flatMap {
+      case Some(user) => Future.successful(user)
+      case None => Future.failed(ExceptionWithResponseCode404(s"User with email $email not found"))
+    }
   }
 }
