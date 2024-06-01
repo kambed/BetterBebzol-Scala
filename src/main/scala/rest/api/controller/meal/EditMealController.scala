@@ -4,7 +4,8 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.parameters.RequestBody
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -22,12 +23,13 @@ object EditMealController {
   def apply(implicit system: ActorSystem[_], mealId: Long): Route = new EditMealController().route()
 }
 
-@Path("/api/v1/meal")
+@Path("/api/v1/meal/{mealId}")
 class EditMealController(implicit system: ActorSystem[_], mealId: Long) extends BaseAuthenticatedController {
 
   @PUT
-  @Path("/{mealId}")
   @Operation(summary = "Edit meal", tags = Array("meal"),
+    parameters = Array(
+      new Parameter(name = "mealId", in = ParameterIn.PATH, required = true, description = "Meal id", content = Array(new Content(schema = new Schema(implementation = classOf[String]))))),
     requestBody = new RequestBody(required = true,
       content = Array(new Content(schema = new Schema(implementation = classOf[EditMealCommand])))),
     responses = Array(
