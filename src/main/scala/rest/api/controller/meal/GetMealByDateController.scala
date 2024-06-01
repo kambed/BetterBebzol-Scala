@@ -28,7 +28,7 @@ class GetMealByDateController(implicit system: ActorSystem[_]) extends BaseAuthe
   @GET
   @Operation(summary = "Get meal by date", tags = Array("meal"),
     parameters = Array(
-      new Parameter(name = "Date", in = ParameterIn.PATH, required = true, description = "Date", content = Array(new Content(schema = new Schema(implementation = classOf[String]))))),
+      new Parameter(name = "date", in = ParameterIn.QUERY, required = true, description = "Date", content = Array(new Content(schema = new Schema(implementation = classOf[String]))))),
     responses = Array(
       new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[MealDto])))),
       new ApiResponse(responseCode = "400", description = "Bad request"),

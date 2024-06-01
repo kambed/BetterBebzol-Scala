@@ -6,7 +6,7 @@ import model.domain.Meal
 import model.domain.enums.MealType
 
 case class EditMealCommand(
-                            @Schema(example = "breakfast", requiredMode = Schema.RequiredMode.REQUIRED)
+                            @Schema(name = "meal_type", example = "breakfast", requiredMode = Schema.RequiredMode.REQUIRED)
                             override val mealType: String,
                             @Schema(example = "01/01/2021", requiredMode = Schema.RequiredMode.REQUIRED)
                             override val date: Option[String],

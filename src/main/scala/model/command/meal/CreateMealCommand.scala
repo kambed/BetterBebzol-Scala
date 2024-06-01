@@ -9,7 +9,7 @@ import model.domain.enums.MealType
 import model.domain.Meal
 
 class CreateMealCommand(
-                         @Schema(example = "breakfast", requiredMode = Schema.RequiredMode.REQUIRED)
+                         @Schema(name = "meal_type", example = "breakfast", requiredMode = Schema.RequiredMode.REQUIRED)
                          val mealType: String,
                          @Schema(example = "01/01/2021", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
                          val date: Option[String],

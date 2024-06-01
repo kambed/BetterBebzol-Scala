@@ -20,11 +20,10 @@ object GetMealByIdController {
   def apply(implicit system: ActorSystem[_], mealId: Long): Route = new GetMealByIdController().route()
 }
 
-@Path("/api/v1/meal")
+@Path("/api/v1/meal/{mealId}")
 class GetMealByIdController(implicit system: ActorSystem[_], mealId: Long) extends BaseAuthenticatedController {
 
   @GET
-  @Path("/{mealId}")
   @Operation(summary = "Get meal by id", tags = Array("meal"),
     parameters = Array(
       new Parameter(name = "mealId", in = ParameterIn.PATH, required = true, description = "Meal id", content = Array(new Content(schema = new Schema(implementation = classOf[Long]))))),

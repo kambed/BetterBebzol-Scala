@@ -4,7 +4,8 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.AskPattern.{Askable, schedulerFromActorSystem}
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.Route
-import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.{Operation, Parameter}
+import io.swagger.v3.oas.annotations.enums.ParameterIn
 import io.swagger.v3.oas.annotations.media.{Content, Schema}
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import jakarta.ws.rs.{GET, Path}
@@ -20,12 +21,13 @@ object GetProductByIdController {
 
 }
 
-@Path("/api/v1/product")
+@Path("/api/v1/product/{productId}")
 class GetProductByIdController(implicit system: ActorSystem[_], productId: Long) extends BaseAuthenticatedController {
 
   @GET
-  @Path("/{productId}")
   @Operation(summary = "Get a product by id", tags = Array("product"),
+    parameters = Array(
+      new Parameter(name = "productId", in = ParameterIn.PATH, required = true, description = "Product id", content = Array(new Content(schema = new Schema(implementation = classOf[Long]))))),
     responses = Array(
       new ApiResponse(responseCode = "200", content = Array(new Content(schema = new Schema(implementation = classOf[ProductDto])))),
       new ApiResponse(responseCode = "400", description = "Bad request"),
