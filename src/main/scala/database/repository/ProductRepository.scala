@@ -6,7 +6,7 @@ import database.MySQLConnection
 import database.table.{MealProductTable, MealTable, ProductTable}
 import model.command.abstracts.{Command, ReturnCommand}
 import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode403, ExceptionWithResponseCode404}
-import model.command.product.{CreateProductCommand, DeleteProductByIdCommand, EditProductCommand, GetMealProductsByIdCommand, GetProductByIdCommand}
+import model.command.product._
 import model.domain.{Meal, MealProduct, Product}
 import model.dto.{MealProductDto, ProductQuantityDto}
 import slick.jdbc.MySQLProfile.api._
@@ -125,7 +125,6 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
 
   private def mapProductsWithQuantityToProductDto(products: Seq[Product], mealProducts: Seq[MealProduct]) = {
     val productIdToQuantity: Map[Long, Int] = mealProducts.map(mp => mp.productId -> mp.quantity).toMap
-
     products.map { product =>
       val quantity = productIdToQuantity.getOrElse(product.productId, 1)
       ProductQuantityDto(
@@ -166,47 +165,6 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
   }
 
   //=====DATABASE METHODS===========================================================
-  private def insertProduct(product: Product): Future[Product] = {
-    MySQLConnection.db.run((productTable returning productTable.map(_.productId) into ((product, productId) => product.copy(productId = productId))) += product)
-  }
-
-  private def insertMealProduct(mealId: Long, productId: Long, quantity: Int): Future[Int] = {
-    val mealProduct = MealProduct(mealId, productId, quantity)
-    MySQLConnection.db.run(mealProductTable += mealProduct)
-  }
-
-  private def updateMeal(oldMeal: Meal, meal: Meal): Future[Meal] = {
-    val modifiedMeal = meal.copy(mealId = oldMeal.mealId)
-    MySQLConnection.db.run(mealTable.filter(_.mealId === meal.mealId).update(modifiedMeal)).map(_ => modifiedMeal)
-  }
-
-  private def deleteProductById(productId: Long): Future[Int] = {
-    MySQLConnection.db.run(productTable.filter(_.productId === productId).delete)
-  }
-
-  private def deleteMealProductByProductId(productId: Long): Future[Int] = {
-    MySQLConnection.db.run(mealProductTable.filter(_.productId === productId).delete)
-  }
-
-  private def updateMealProduct(mealProduct: MealProduct): Future[Option[MealProduct]] = {
-    MySQLConnection.db.run(mealProductTable.filter(_.productId === mealProduct.productId).update(mealProduct)).map {
-      case 0 => None
-      case _ => Some(mealProduct)
-    }
-  }
-
-  private def updateProduct(oldProduct: Product, product: Product): Future[Product] = {
-    val modifiedProduct = product.copy(productId = oldProduct.productId)
-    MySQLConnection.db.run(productTable.filter(_.productId === product.productId).update(modifiedProduct)).map(_ => modifiedProduct)
-  }
-
-  private def getMealById(id: Long): Future[Meal] = {
-    MySQLConnection.db.run(mealTable.filter(_.mealId === id).result.headOption).flatMap {
-      case Some(meal) => Future.successful(meal)
-      case None => Future.failed(ExceptionWithResponseCode404(s"Meal with id $id not found"))
-    }
-  }
-
   private def getProductById(id: Long): Future[Product] = {
     MySQLConnection.db.run(productTable.filter(_.productId === id).result.headOption).flatMap {
       case Some(product) => Future.successful(product)
@@ -218,6 +176,35 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     MySQLConnection.db.run(productTable.filter(_.productId inSet ids).result)
   }
 
+  private def insertProduct(product: Product): Future[Product] = {
+    MySQLConnection.db.run((productTable returning productTable.map(_.productId) into ((product, productId) => product.copy(productId = productId))) += product)
+  }
+
+  private def updateProduct(oldProduct: Product, product: Product): Future[Product] = {
+    val modifiedProduct = product.copy(productId = oldProduct.productId)
+    MySQLConnection.db.run(productTable.filter(_.productId === product.productId).update(modifiedProduct)).map(_ => modifiedProduct)
+  }
+
+  private def deleteProductById(productId: Long): Future[Int] = {
+    MySQLConnection.db.run(productTable.filter(_.productId === productId).delete)
+  }
+
+  private def getMealById(id: Long): Future[Meal] = {
+    MySQLConnection.db.run(mealTable.filter(_.mealId === id).result.headOption).flatMap {
+      case Some(meal) => Future.successful(meal)
+      case None => Future.failed(ExceptionWithResponseCode404(s"Meal with id $id not found"))
+    }
+  }
+
+  private def updateMeal(oldMeal: Meal, meal: Meal): Future[Meal] = {
+    val modifiedMeal = meal.copy(mealId = oldMeal.mealId)
+    MySQLConnection.db.run(mealTable.filter(_.mealId === meal.mealId).update(modifiedMeal)).map(_ => modifiedMeal)
+  }
+
+  private def getMealProductsByMealId(mealId: Long): Future[Seq[MealProduct]] = {
+    MySQLConnection.db.run(mealProductTable.filter(_.mealId === mealId).result)
+  }
+
   private def getMealProductByProductId(productId: Long): Future[MealProduct] = {
     MySQLConnection.db.run(mealProductTable.filter(_.productId === productId).result.headOption).flatMap {
       case Some(mealProduct) => Future.successful(mealProduct)
@@ -225,7 +212,19 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     }
   }
 
-  private def getMealProductsByMealId(mealId: Long): Future[Seq[MealProduct]] = {
-    MySQLConnection.db.run(mealProductTable.filter(_.mealId === mealId).result)
+  private def insertMealProduct(mealId: Long, productId: Long, quantity: Int): Future[Int] = {
+    val mealProduct = MealProduct(mealId, productId, quantity)
+    MySQLConnection.db.run(mealProductTable += mealProduct)
+  }
+
+  private def updateMealProduct(mealProduct: MealProduct): Future[Option[MealProduct]] = {
+    MySQLConnection.db.run(mealProductTable.filter(_.productId === mealProduct.productId).update(mealProduct)).map {
+      case 0 => None
+      case _ => Some(mealProduct)
+    }
+  }
+
+  private def deleteMealProductByProductId(productId: Long): Future[Int] = {
+    MySQLConnection.db.run(mealProductTable.filter(_.productId === productId).delete)
   }
 }

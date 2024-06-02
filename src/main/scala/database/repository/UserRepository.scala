@@ -77,6 +77,13 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
   }
 
   //=====DATABASE METHODS===========================================================
+  private def getUserByEmail(email: String): Future[User] = {
+    MySQLConnection.db.run(table.filter(_.email === email).result.headOption).flatMap {
+      case Some(user) => Future.successful(user)
+      case None => Future.failed(ExceptionWithResponseCode404(s"User with email $email not found"))
+    }
+  }
+
   private def insertUser(user: User): Future[User] = {
     MySQLConnection.db.run((table returning table.map(_.userId)) += user).transform(
       id => user.copy(userId = id),
@@ -90,13 +97,6 @@ private class UserRepository(context: ActorContext[Command]) extends AbstractBeh
   private def updateUser(oldUser: User, user: User): Future[User] = {
     val modifiedUser = user.copy(userId = oldUser.userId, password = oldUser.password)
     MySQLConnection.db.run(table.filter(_.email === user.email).update(modifiedUser)).map(_ => modifiedUser)
-  }
-
-  private def getUserByEmail(email: String): Future[User] = {
-    MySQLConnection.db.run(table.filter(_.email === email).result.headOption).flatMap {
-      case Some(user) => Future.successful(user)
-      case None => Future.failed(ExceptionWithResponseCode404(s"User with email $email not found"))
-    }
   }
 
   private def updateUserPassword(email: String, password: String): Future[Unit] = {

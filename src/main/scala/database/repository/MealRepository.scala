@@ -103,21 +103,6 @@ private class MealRepository(context: ActorContext[Command]) extends AbstractBeh
   }
 
   //=====DATABASE METHODS===========================================================
-  private def insertMeal(meal: Meal): Future[Meal] = {
-    MySQLConnection.db.run((table returning table.map(_.mealId) into ((meal, id) => meal.copy(mealId = id))) += meal)
-      .transform(meal => meal,
-        exception => exception match {
-          case exception: SQLIntegrityConstraintViolationException => ExceptionWithResponseCode400(exception.getMessage)
-          case _ => exception
-        }
-      )
-  }
-
-  private def updateMeal(oldMeal: Meal, meal: Meal): Future[Meal] = {
-    val modifiedMeal = meal.copy(mealId = oldMeal.mealId)
-    MySQLConnection.db.run(table.filter(_.mealId === meal.mealId).update(modifiedMeal)).map(_ => modifiedMeal)
-  }
-
   private def getMealById(id: Long): Future[Meal] = {
     MySQLConnection.db.run(table.filter(_.mealId === id).result.headOption).flatMap {
       case Some(meal) => Future.successful(meal)
@@ -131,5 +116,20 @@ private class MealRepository(context: ActorContext[Command]) extends AbstractBeh
 
   private def getMealsByUserId(userId: Long): Future[Seq[Meal]] = {
     MySQLConnection.db.run(table.filter(_.userId === userId).result)
+  }
+
+  private def insertMeal(meal: Meal): Future[Meal] = {
+    MySQLConnection.db.run((table returning table.map(_.mealId) into ((meal, id) => meal.copy(mealId = id))) += meal)
+      .transform(meal => meal,
+        exception => exception match {
+          case exception: SQLIntegrityConstraintViolationException => ExceptionWithResponseCode400(exception.getMessage)
+          case _ => exception
+        }
+      )
+  }
+
+  private def updateMeal(oldMeal: Meal, meal: Meal): Future[Meal] = {
+    val modifiedMeal = meal.copy(mealId = oldMeal.mealId)
+    MySQLConnection.db.run(table.filter(_.mealId === meal.mealId).update(modifiedMeal)).map(_ => modifiedMeal)
   }
 }
