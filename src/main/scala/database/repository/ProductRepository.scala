@@ -5,7 +5,7 @@ import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 import database.MySQLConnection
 import database.table.{MealProductTable, MealTable, ProductTable}
 import model.command.abstracts.{Command, ReturnCommand}
-import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode403}
+import model.command.exception.{ExceptionWithResponseCode400, ExceptionWithResponseCode403, ExceptionWithResponseCode404}
 import model.command.product.{CreateProductCommand, DeleteProductByIdCommand, EditProductCommand, GetMealProductsByIdCommand, GetProductByIdCommand}
 import model.domain.{Meal, MealProduct, Product}
 import model.dto.{MealProductDto, ProductQuantityDto}
@@ -40,167 +40,85 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
   }
 
   //=====COMMAND HANDLERS===========================================================
-
   private def handleCreateProductCommand(command: CreateProductCommand, originalMsg: Command): Unit = {
-    checkIfUserIsOwnerOfMeal(command.userId, command.mealId).onComplete {
-      case Success(isOwner) =>
-        if (!isOwner) {
-          originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"You are not the owner of meal with id ${command.mealId}")))
-          return
-        }
-        getMealById(command.mealId).onComplete {
-          case Success(Some(meal)) =>
-            insertProduct(command.toProduct).onComplete {
-              case Success(insertedProduct) =>
-                val quantity = command.quantity.getOrElse(1)
-                val updatedMeal = updateMealByProduct(meal, insertedProduct, quantity)
-                updateMeal(updatedMeal).onComplete {
-                  case Success(Some(updatedMeal)) =>
-                    insertMealProduct(updatedMeal.mealId, insertedProduct.productId, quantity).onComplete {
-                      case Success(_) =>
-                        val response = Command(ReturnCommand(insertedProduct))
-                        response.addAllDelayedRequests(originalMsg.delayedRequests)
-                        originalMsg.replyTo ! response
-                      case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                    }
-                  case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                }
-              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-            }
-        }
-
+    (for {
+      meal <- getMealById(command.mealId)
+      mealWithCheck <- checkIfUserIsOwnerOfMeal(command.userId, meal)
+      insertedProduct <- insertProduct(command.toProduct)
+      updatedMeal <- updateMeal(mealWithCheck, updateMealByProduct(mealWithCheck, insertedProduct, command.quantity.getOrElse(1)))
+      insertedMealProduct <- insertMealProduct(updatedMeal.mealId, insertedProduct.productId, command.quantity.getOrElse(1))
+    } yield (insertedProduct, updatedMeal, insertedMealProduct)).onComplete({
+      case Success((product, _, _)) =>
+        val response = Command(ReturnCommand(product))
+        response.addAllDelayedRequests(originalMsg.delayedRequests)
+        originalMsg.replyTo ! response
       case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-    }
+    })
   }
 
   private def handleEditProductCommand(command: EditProductCommand, originalMsg: Command): Unit = {
-    getMealProductByProductId(command.productId).onComplete {
-      case Success(Some(mealProduct)) =>
-        checkIfUserIsOwnerOfMeal(command.userId, mealProduct.mealId).onComplete {
-          case Success(isOwner) =>
-            if (!isOwner) {
-              originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"You are not the owner of meal with product id ${command.productId}")))
-              return
-            }
-            getProductById(command.productId).onComplete {
-              case Success(Some(product)) =>
-                val updatedProduct = command.toProduct
-                updateProduct(updatedProduct).onComplete {
-                  case Success(Some(updatedProduct)) =>
-                    getMealById(mealProduct.mealId).onComplete {
-                      case Success(Some(meal)) =>
-                        val remMeal = removeFromMealProduct(meal, product, mealProduct.quantity)
-                        val updatedMeal = updateMealByProduct(remMeal, updatedProduct, command.quantity.getOrElse(1))
-                        updateMeal(updatedMeal).onComplete {
-                          case Success(Some(_)) =>
-                            updateMealProduct(updateMealProductQuantity(mealProduct, command.quantity.getOrElse(1))).onComplete {
-                              case Success(Some(_)) =>
-                                val response = Command(ReturnCommand(updatedProduct))
-                                response.addAllDelayedRequests(originalMsg.delayedRequests)
-                                originalMsg.replyTo ! response
-                              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                            }
-                          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                        }
-                      case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                    }
-                  case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                }
-              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-            }
-          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-        }
-      case Success(None) => originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"Product with id ${command.productId} is not in any meal")))
+    (for {
+      mealProduct <- getMealProductByProductId(command.productId)
+      meal <- getMealById(mealProduct.mealId)
+      mealWithCheck <- checkIfUserIsOwnerOfMeal(command.userId, meal)
+      product <- getProductById(mealProduct.productId)
+      updatedProduct <- updateProduct(product, command.toProduct)
+      updatedMeal <- updateMeal(mealWithCheck, updateMealByProduct(removeFromMealProduct(mealWithCheck, product, mealProduct.quantity), updatedProduct, command.quantity.getOrElse(1)))
+      updatedMealProduct <- updateMealProduct(mealProduct.copy(quantity = command.quantity.getOrElse(1)))
+    } yield (updatedProduct, updatedMeal, updatedMealProduct)).onComplete({
+      case Success((product, _, _)) =>
+        val response = Command(ReturnCommand(product))
+        response.addAllDelayedRequests(originalMsg.delayedRequests)
+        originalMsg.replyTo ! response
       case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-    }
+    })
   }
 
   private def handleGetProductCommand(command: GetProductByIdCommand, originalMsg: Command): Unit = {
-    getMealProductByProductId(command.productId).onComplete {
-      case Success(Some(mealProduct)) =>
-        checkIfUserIsOwnerOfMeal(command.userId, mealProduct.mealId).onComplete {
-          case Success(isOwner) =>
-            if (!isOwner) {
-              originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"You are not the owner of meal with product id ${command.productId}")))
-              return
-            }
-            getProductById(command.productId).onComplete {
-              case Success(Some(product)) =>
-                val response = Command(ReturnCommand(product))
-                response.addAllDelayedRequests(originalMsg.delayedRequests)
-                originalMsg.replyTo ! response
-              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-            }
-          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-        }
-      case Success(None) => originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"Product with id ${command.productId} is not in any meal")))
+    (for {
+      mealProduct <- getMealProductByProductId(command.productId)
+      meal <- getMealById(mealProduct.mealId)
+      mealWithCheck <- checkIfUserIsOwnerOfMeal(command.userId, meal)
+      product <- getProductById(mealProduct.productId)
+    } yield (product, mealWithCheck)).onComplete({
+      case Success((product, _)) =>
+        val response = Command(ReturnCommand(product))
+        response.addAllDelayedRequests(originalMsg.delayedRequests)
+        originalMsg.replyTo ! response
       case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-    }
+    })
   }
 
   private def handleGetMealProductCommand(command: GetMealProductsByIdCommand, originalMsg: Command): Unit = {
-    checkIfUserIsOwnerOfMeal(command.userId, command.mealId).onComplete {
-      case Success(isOwner) =>
-        if (!isOwner) {
-          originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"You are not the owner of meal with id ${command.mealId}")))
-          return
-        }
-        getMealProductsByMealId(command.mealId).onComplete {
-          case Success(mealProducts) =>
-            getMealById(command.mealId).onComplete {
-              case Success(Some(meal)) =>
-                getProductsByIdList(mealProducts.map(_.productId)).onComplete {
-                  case Success(products) =>
-                    val mealProductDto = MealProductDto(meal.toMealDto, mapProductsWithQuantityToProductDto(products, mealProducts))
-                    val response = Command(ReturnCommand(mealProductDto))
-                    response.addAllDelayedRequests(originalMsg.delayedRequests)
-                    originalMsg.replyTo ! response
-                  case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                }
-
-              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-            }
-          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-        }
+    (for {
+      meal <- getMealById(command.mealId)
+      mealWithCheck <- checkIfUserIsOwnerOfMeal(command.userId, meal)
+      mealProducts <- getMealProductsByMealId(mealWithCheck.mealId)
+      products <- getProductsByIdList(mealProducts.map(_.productId))
+    } yield (products, mealProducts, mealWithCheck)).onComplete {
+      case Success((products, mealProducts, meal)) =>
+        val mealProductDto = MealProductDto(meal.toMealDto, mapProductsWithQuantityToProductDto(products, mealProducts))
+        val response = Command(ReturnCommand(mealProductDto))
+        response.addAllDelayedRequests(originalMsg.delayedRequests)
+        originalMsg.replyTo ! response
       case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
     }
   }
 
   private def handleDeleteProductByIdCommand(command: DeleteProductByIdCommand, originalMsg: Command): Unit = {
-    getMealProductByProductId(command.productId).onComplete {
-      case Success(Some(mealProduct)) =>
-        checkIfUserIsOwnerOfMeal(command.userId, mealProduct.mealId).onComplete {
-          case Success(isOwner) =>
-            if (!isOwner) {
-              originalMsg.replyTo ! Command(ReturnCommand(ExceptionWithResponseCode403(s"You are not the owner of meal with product id ${command.productId}")))
-              return
-            }
-            getMealById(mealProduct.mealId).onComplete {
-              case Success(Some(meal)) =>
-                getProductById(command.productId).onComplete {
-                  case Success(Some(product)) =>
-                    val remMeal = removeFromMealProduct(meal, product, mealProduct.quantity)
-                    updateMeal(remMeal).onComplete {
-                      case Success(Some(_)) =>
-                        deleteMealProductByProductId(command.productId).onComplete {
-                          case Success(_) =>
-                            deleteProductById(command.productId).onComplete {
-                              case Success(_) =>
-                                val response = Command(ReturnCommand(product))
-                                response.addAllDelayedRequests(originalMsg.delayedRequests)
-                                originalMsg.replyTo ! response
-                              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                            }
-                          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                        }
-                      case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                    }
-                  case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-                }
-              case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-            }
-          case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
-        }
+    (for {
+      mealProduct <- getMealProductByProductId(command.productId)
+      meal <- getMealById(mealProduct.mealId)
+      mealWithCheck <- checkIfUserIsOwnerOfMeal(command.userId, meal)
+      product <- getProductById(mealProduct.productId)
+      updateMeal <- updateMeal(mealWithCheck, removeFromMealProduct(mealWithCheck, product, mealProduct.quantity))
+      deleteMealProduct <- deleteMealProductByProductId(command.productId)
+      deleteProduct <- deleteProductById(command.productId)
+    } yield (product, updateMeal, deleteMealProduct, deleteProduct)).onComplete {
+      case Success((product, _, _, _)) =>
+        val response = Command(ReturnCommand(product))
+        response.addAllDelayedRequests(originalMsg.delayedRequests)
+        originalMsg.replyTo ! response
       case Failure(exception) => originalMsg.replyTo ! Command(ReturnCommand(exception))
     }
   }
@@ -222,8 +140,32 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     }
   }
 
-  //=====DATABASE METHODS===========================================================
+  private def checkIfUserIsOwnerOfMeal(userId: Long, meal: Meal): Future[Meal] = {
+    if (meal.userId != userId) {
+      return Future.failed(ExceptionWithResponseCode403(s"You are not the owner of meal with id ${meal.mealId}"))
+    }
+    Future.successful(meal)
+  }
 
+  private def updateMealByProduct(meal: Meal, product: Product, quantity: Int): Meal = {
+    meal.copy(
+      calories = meal.calories + (product.calories.getOrElse(0.0) * quantity),
+      proteins = meal.proteins + (product.proteins.getOrElse(0.0) * quantity),
+      fat = meal.fat + (product.fat.getOrElse(0.0) * quantity),
+      carbohydrates = meal.carbohydrates + (product.carbohydrates.getOrElse(0.0) * quantity)
+    )
+  }
+
+  private def removeFromMealProduct(meal: Meal, product: Product, quantity: Int): Meal = {
+    meal.copy(
+      calories = meal.calories - (product.calories.getOrElse(0.0) * quantity),
+      proteins = meal.proteins - (product.proteins.getOrElse(0.0) * quantity),
+      fat = meal.fat - (product.fat.getOrElse(0.0) * quantity),
+      carbohydrates = meal.carbohydrates - (product.carbohydrates.getOrElse(0.0) * quantity)
+    )
+  }
+
+  //=====DATABASE METHODS===========================================================
   private def insertProduct(product: Product): Future[Product] = {
     MySQLConnection.db.run((productTable returning productTable.map(_.productId) into ((product, productId) => product.copy(productId = productId))) += product)
   }
@@ -233,11 +175,9 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     MySQLConnection.db.run(mealProductTable += mealProduct)
   }
 
-  private def updateMeal(meal: Meal): Future[Option[Meal]] = {
-    MySQLConnection.db.run(mealTable.filter(_.mealId === meal.mealId).update(meal)).map {
-      case 0 => None
-      case _ => Some(meal)
-    }
+  private def updateMeal(oldMeal: Meal, meal: Meal): Future[Meal] = {
+    val modifiedMeal = meal.copy(mealId = oldMeal.mealId)
+    MySQLConnection.db.run(mealTable.filter(_.mealId === meal.mealId).update(modifiedMeal)).map(_ => modifiedMeal)
   }
 
   private def deleteProductById(productId: Long): Future[Int] = {
@@ -255,67 +195,37 @@ private class ProductRepository(context: ActorContext[Command]) extends Abstract
     }
   }
 
-  private def updateProduct(product: Product): Future[Option[Product]] = {
-    MySQLConnection.db.run(productTable.filter(_.productId === product.productId).update(product)).map {
-      case 0 => None
-      case _ => Some(product)
+  private def updateProduct(oldProduct: Product, product: Product): Future[Product] = {
+    val modifiedProduct = product.copy(productId = oldProduct.productId)
+    MySQLConnection.db.run(productTable.filter(_.productId === product.productId).update(modifiedProduct)).map(_ => modifiedProduct)
+  }
+
+  private def getMealById(id: Long): Future[Meal] = {
+    MySQLConnection.db.run(mealTable.filter(_.mealId === id).result.headOption).flatMap {
+      case Some(meal) => Future.successful(meal)
+      case None => Future.failed(ExceptionWithResponseCode404(s"Meal with id $id not found"))
     }
   }
 
-  private def getMealById(id: Long): Future[Option[Meal]] = {
-    MySQLConnection.db.run(mealTable.filter(_.mealId === id).result.headOption)
-  }
-
-  private def getProductById(id: Long): Future[Option[Product]] = {
-    MySQLConnection.db.run(productTable.filter(_.productId === id).result.headOption)
+  private def getProductById(id: Long): Future[Product] = {
+    MySQLConnection.db.run(productTable.filter(_.productId === id).result.headOption).flatMap {
+      case Some(product) => Future.successful(product)
+      case None => Future.failed(ExceptionWithResponseCode404(s"Product with id $id not found"))
+    }
   }
 
   private def getProductsByIdList(ids: Seq[Long]): Future[Seq[Product]] = {
     MySQLConnection.db.run(productTable.filter(_.productId inSet ids).result)
   }
 
-  private def getMealProductByProductId(productId: Long): Future[Option[MealProduct]] = {
-    MySQLConnection.db.run(mealProductTable.filter(_.productId === productId).result.headOption)
+  private def getMealProductByProductId(productId: Long): Future[MealProduct] = {
+    MySQLConnection.db.run(mealProductTable.filter(_.productId === productId).result.headOption).flatMap {
+      case Some(mealProduct) => Future.successful(mealProduct)
+      case None => Future.failed(ExceptionWithResponseCode404(s"Product with id $productId is not in any meal"))
+    }
   }
 
   private def getMealProductsByMealId(mealId: Long): Future[Seq[MealProduct]] = {
     MySQLConnection.db.run(mealProductTable.filter(_.mealId === mealId).result)
   }
-
-  private def getAllProducts: Future[Seq[Product]] = {
-    MySQLConnection.db.run(productTable.result)
-  }
-
-  //=====LOGIC METHODS===========================================================
-  private def checkIfUserIsOwnerOfMeal(userId: Long, mealId: Long): Future[Boolean] = {
-    getMealById(mealId).map {
-      case Some(meal) => meal.userId == userId
-      case None => false
-    }
-  }
-
-  private def updateMealByProduct(meal: Meal, product: Product, quantity: Int): Meal = {
-    meal.copy(
-      calories = meal.calories + (product.calories.getOrElse(0.0) * quantity),
-      proteins = meal.proteins + (product.proteins.getOrElse(0.0) * quantity),
-      fat = meal.fat + (product.fat.getOrElse(0.0) * quantity),
-      carbohydrates = meal.carbohydrates + (product.carbohydrates.getOrElse(0.0) * quantity)
-    )
-  }
-
-  private def updateMealProductQuantity(mealProduct: MealProduct, quantity: Int): MealProduct = {
-    mealProduct.copy(
-      quantity = quantity
-    )
-  }
-
-  private def removeFromMealProduct(meal: Meal, product: Product, quantity: Int): Meal = {
-    meal.copy(
-      calories = meal.calories - (product.calories.getOrElse(0.0) * quantity),
-      proteins = meal.proteins - (product.proteins.getOrElse(0.0) * quantity),
-      fat = meal.fat - (product.fat.getOrElse(0.0) * quantity),
-      carbohydrates = meal.carbohydrates - (product.carbohydrates.getOrElse(0.0) * quantity)
-    )
-  }
-
 }
