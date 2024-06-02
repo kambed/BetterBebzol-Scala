@@ -10,12 +10,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.{Operation, Parameter}
 import jakarta.ws.rs.{GET, Path}
 import model.command.abstracts.{Command, ReturnCommand}
-import model.command.exception.ExceptionWithResponseCode404
+import model.command.exception.ExceptionWithResponseCode400
 import model.command.meal.GetMealsByDateCommand
 import model.domain.Meal
 import model.dto.MealDto
 import rest.api.controller.BaseAuthenticatedController
 import util.{ActorType, Actors}
+
+import scala.util.{Success, Try}
 
 object GetMealByDateController {
   def apply(implicit system: ActorSystem[_]): Route = new GetMealByDateController().route()
@@ -37,7 +39,9 @@ class GetMealByDateController(implicit system: ActorSystem[_]) extends BaseAuthe
   def route(): Route = get {
     parameters("date") { date =>
       authenticatedRoute { userId =>
-        val result = Actors.getActorRef(ActorType.MEAL_DATABASE).ask(ref => Command(GetMealsByDateCommand(userId, date), ref))
+        val command = Try(GetMealsByDateCommand(userId, date)).transform(Success(_),
+          e => throw ExceptionWithResponseCode400(e.getMessage))
+        val result = Actors.getActorRef(ActorType.MEAL_DATABASE).ask(ref => Command(command.get, ref))
         onSuccess(result) { result: Command =>
           result.command match {
             case returnCommand: ReturnCommand => returnCommand.response match {

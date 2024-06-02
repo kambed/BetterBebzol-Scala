@@ -82,8 +82,9 @@ class GetMealByIdTest extends BaseTest {
       meal_id = responseAs[Map[String, String]].get("meal_id")
     }
 
-    val expectedResponse = Map("message" -> "model.command.exception.ExceptionWithResponseCode403: You are not the owner of meal with id 10000")
+    val expectedResponse = Map("message" -> "Meal with id 10000 not found")
     Get("/api/v1/meal/10000") ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
+      status shouldEqual StatusCodes.NotFound
       responseAs[Map[String, String]] shouldEqual expectedResponse
     }
   }

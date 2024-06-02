@@ -40,9 +40,12 @@ class CreateUserTest extends BaseTest {
   }
 
   "Try to create user with duplicate email parameter" should "fail with bad request 400" in {
-    val createUserCommand = objectMapper.writeValueAsString(Map("email" -> "test@gmail.com", "password" -> "password"))
-    val expectedError = Map("message" -> "Duplicate entry 'test@gmail.com' for key 'email'")
+    val createUserCommand = objectMapper.writeValueAsString(Map("email" -> "test100@gmail.com", "password" -> "password"))
+    Post("/api/v1/user", createUserCommand) ~> routes.get ~> check {
+      status shouldEqual StatusCodes.Created
+    }
 
+    val expectedError = Map("message" -> "Duplicate entry 'test100@gmail.com' for key 'email'")
     Post("/api/v1/user", createUserCommand) ~> routes.get ~> check {
       status shouldEqual StatusCodes.BadRequest
       responseAs[Map[String, String]] shouldEqual expectedError

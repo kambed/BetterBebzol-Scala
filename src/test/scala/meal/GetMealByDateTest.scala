@@ -54,7 +54,7 @@ class GetMealByDateTest extends BaseTest {
     }
   }
 
-  "Try to get meal by date with invalid date" should "fail with bad request 404" in {
+  "Try to get meal by date with invalid date" should "fail with bad request 400" in {
     val createUserCommand = objectMapper.writeValueAsString(Map(
       "email" -> "test2@gmail.com",
       "password" -> "password",
@@ -87,8 +87,10 @@ class GetMealByDateTest extends BaseTest {
     }
 
     val requestUri = Uri(s"/api/v1/meal/date").withQuery(Uri.Query("date" -> "12212/2023"))
+    val expectedResponse = Map("message" -> "Bad request: requirement failed: Invalid date format")
     Get(requestUri) ~> addHeader("Authorization", s"Bearer ${token.get}") ~> routes.get ~> check {
-      status shouldEqual StatusCodes.NotFound
+      status shouldEqual StatusCodes.BadRequest
+      responseAs[Map[String, String]] shouldEqual expectedResponse
     }
   }
 }
