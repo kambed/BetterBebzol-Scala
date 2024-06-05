@@ -1,27 +1,23 @@
-# Scala
-Programming in Scala
+# BetterBebzol
 
-## Overview
-This is a simple Scala application built using Akka HTTP for creating RESTful APIs. It demonstrates how to set up an Akka HTTP server and define routes.
+## To start application:
 
-## Prerequisites
-- [Java Development Kit (JDK)](https://adoptopenjdk.net/) installed on your system.
-- [Scala Build Tool (SBT)](https://www.scala-sbt.org/) installed on your system.
+## 1.) Start MySQL database in docker
 
-## Setup
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/kambed/Scala.git
-   cd Scala
+To start database on docker use command:
+> docker-compose -f docker-compose.yml
 
-2. **Run the application:**
-   ```bash
-   sbt run
-   ```
-   The server will start on `http://localhost:8080`.
+Alternatively, for JetBrains Intellij users they can use green button on the left in opened docker-compose file in db section.
 
-3. **Run DataBase on  docker-compose:**
-   ```bash
-   docker-compose up
-   ```
-   The database will start on `http://localhost:3306`.
+## 2.) Start Akka backend
+
+To start Akka backend locally in your environment:
+> sbt run
+
+Alternatively, for JetBrains Intellij users, that does not have sbt installed locally, click green button in opened Main file
+
+## After starting application:
+
+> Application will be available on [localhost:8080](http://localhost:8080)
+> 
+> To check api endpoints you can use [Swagger documentation](http://localhost:8080/swagger-ui.html)
